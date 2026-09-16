@@ -1,0 +1,1164 @@
+<!doctype html>
+<!--
+  THROWAWAY PROTOTYPE. Not production code. No StyleX, no React, no build step.
+  Question: what does the log look like, and how do superseded/reversed entries recede?
+  Nine variants of hero + log on one page, switchable via ?variant=A..I. D-F are round two; G-I combine E and B.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Decision Log — UI prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF9F5; --paper-sunk:#F4F0E7; --card:#FFFDFA;
+  --ink:#1B1815; --ink-muted:#6A635A; --ink-faint:#9B9389;
+  --rule:#E4DDD1; --rule-strong:#CFC6B6;
+  --accent:#34506B;
+  --active:#3E6B4F; --superseded:#8A6D3B; --reversed:#8C4A45;
+  --serif:'Source Serif 4', Georgia, serif;
+  --sans:'IBM Plex Sans', system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;padding-bottom:88px}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;letter-spacing:-.015em}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+
+/* ── switcher (deliberately ugly, not part of the design) ───────── */
+#sw{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99;
+  display:flex;align-items:center;gap:4px;background:#17161A;color:#fff;
+  border-radius:999px;padding:6px;box-shadow:0 8px 30px rgba(0,0,0,.28);
+  font-family:var(--sans);font-size:13px}
+#sw button{background:transparent;border:0;color:#fff;padding:6px 12px;border-radius:999px;opacity:.7}
+#sw button:hover{background:rgba(255,255,255,.12);opacity:1}
+#sw .lbl{padding:0 14px;font-weight:500;white-space:nowrap}
+#sw .lbl b{font-weight:600}
+
+/* ── shared bits ────────────────────────────────────────────────── */
+.meta{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+.setbtn{background:none;border:0;padding:2px 0;font-size:12.5px;color:var(--ink-muted);
+  border-bottom:1px solid var(--rule-strong);margin-right:12px}
+.setbtn:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.empty{padding:56px 0;color:var(--ink-muted);font-family:var(--serif);font-size:19px}
+
+/* ═══ VARIANT A — Ledger ════════════════════════════════════════ */
+.v-a .hero{padding:104px 0 56px}
+.v-a .hero h1{font-size:60px;line-height:1.04;max-width:13ch}
+.v-a .hero p{font-size:19px;line-height:1.6;color:var(--ink-muted);max-width:52ch;margin:24px 0 32px}
+.v-a .cta{display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;
+  padding:13px 26px;font-size:15px;font-weight:500;border-radius:2px}
+.v-a .bar{position:sticky;top:0;background:var(--paper);border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);z-index:5}
+.v-a .bar .wrap{display:flex;gap:14px;align-items:center;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.v-a .pill{background:none;border:1px solid var(--rule-strong);border-radius:999px;
+  padding:5px 13px;font-size:13px;color:var(--ink-muted)}
+.v-a .pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.v-a input[type=search],.v-a select{background:var(--card);border:1px solid var(--rule-strong);
+  border-radius:2px;padding:6px 10px;font-size:14px}
+.v-a input[type=search]{flex:1;min-width:150px}
+.v-a .row{display:grid;grid-template-columns:132px 1fr;gap:28px;
+  padding:34px 0;border-bottom:1px solid var(--rule)}
+.v-a .rail .d{font-family:var(--serif);font-size:17px;line-height:1.25}
+.v-a .rail .y{color:var(--ink-faint);font-size:14px;font-family:var(--serif)}
+.v-a .rail .st{margin-top:12px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase}
+.v-a .st.active{color:var(--active)} .v-a .st.superseded{color:var(--superseded)} .v-a .st.reversed{color:var(--reversed)}
+.v-a .row h3{font-size:25px;line-height:1.22}
+.v-a .row .dec{font-size:17px;line-height:1.62;margin:10px 0 0}
+.v-a .row .why{font-size:16px;line-height:1.66;color:var(--ink-muted);margin:14px 0 0;max-width:62ch}
+.v-a .row .foot{margin-top:18px}
+.v-a .row.is-past .rail .d,.v-a .row.is-past h3,.v-a .row.is-past .dec{color:var(--ink-faint)}
+.v-a .row.is-past h3{font-weight:400}
+.v-a .row.is-past .why{color:var(--ink-faint)}
+
+/* ═══ VARIANT B — Sidebar + cards ═══════════════════════════════ */
+.v-b .hero{border-bottom:1px solid var(--rule);background:var(--paper-sunk)}
+.v-b .hero .wrap{max-width:1120px;display:grid;grid-template-columns:1.05fr .95fr;
+  gap:56px;align-items:center;padding-top:88px;padding-bottom:88px}
+.v-b .hero h1{font-size:50px;line-height:1.08}
+.v-b .hero p{font-size:18px;line-height:1.6;color:var(--ink-muted);margin:20px 0 28px}
+.v-b .cta{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;
+  padding:13px 24px;border-radius:3px;font-size:15px;font-weight:500}
+.v-b .peek{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:20px;
+  box-shadow:0 14px 34px rgba(27,24,21,.07)}
+.v-b .peek div{border-bottom:1px solid var(--rule);padding:11px 0;font-size:14px;display:flex;
+  justify-content:space-between;gap:16px;color:var(--ink-muted)}
+.v-b .peek div:last-child{border:0}
+.v-b .peek b{font-family:var(--serif);font-weight:600;color:var(--ink);font-size:15px}
+.v-b .shell{max-width:1120px;margin:0 auto;padding:44px 24px;
+  display:grid;grid-template-columns:210px 1fr;gap:44px;align-items:start}
+.v-b .side{position:sticky;top:24px}
+.v-b .side h4{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);
+  margin:0 0 10px;font-weight:600;font-family:var(--sans)}
+.v-b .side+.side{margin-top:0}
+.v-b .grp{margin-bottom:28px}
+.v-b .side button{display:flex;width:100%;justify-content:space-between;background:none;border:0;
+  padding:6px 8px;border-radius:3px;font-size:14px;color:var(--ink-muted);text-align:left}
+.v-b .side button[aria-pressed="true"]{background:var(--paper-sunk);color:var(--ink);font-weight:500}
+.v-b .side input{width:100%;background:var(--card);border:1px solid var(--rule-strong);
+  border-radius:3px;padding:8px 10px;font-size:14px}
+.v-b .yr{font-family:var(--serif);font-size:15px;color:var(--ink-faint);
+  margin:26px 0 12px;display:flex;align-items:center;gap:12px}
+.v-b .yr::after{content:"";flex:1;height:1px;background:var(--rule)}
+.v-b .yr:first-child{margin-top:0}
+.v-b .card{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--active);
+  border-radius:4px;padding:20px 22px;margin-bottom:12px}
+.v-b .card.superseded{border-left-color:var(--superseded)}
+.v-b .card.reversed{border-left-color:var(--reversed)}
+.v-b .card.is-past{background:transparent;border-color:var(--rule);border-left-color:var(--rule-strong)}
+.v-b .card.is-past h3,.v-b .card.is-past .dec{color:var(--ink-faint)}
+.v-b .card.is-past .why{color:var(--ink-faint)}
+.v-b .card h3{font-size:21px;line-height:1.3}
+.v-b .card .dec{font-size:16px;line-height:1.6;margin:8px 0 0}
+.v-b .card .why{font-size:15px;line-height:1.65;color:var(--ink-muted);margin:12px 0 0}
+.v-b .card .foot{display:flex;justify-content:space-between;align-items:center;gap:16px;
+  margin-top:16px;flex-wrap:wrap}
+.v-b .badge{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;
+  border-radius:999px;border:1px solid currentColor}
+.v-b .badge.active{color:var(--active)} .v-b .badge.superseded{color:var(--superseded)} .v-b .badge.reversed{color:var(--reversed)}
+
+/* ═══ VARIANT C — Statement ═════════════════════════════════════ */
+.v-c .hero{min-height:82vh;display:flex;flex-direction:column;justify-content:center;padding:80px 0 60px}
+.v-c .hero h1{font-size:84px;line-height:.99;max-width:11ch;letter-spacing:-.03em}
+.v-c .hero p{font-size:18px;line-height:1.65;color:var(--ink-muted);max-width:46ch;margin:32px 0 36px}
+.v-c .cta{font-size:17px;text-decoration:none;border-bottom:2px solid var(--ink);padding-bottom:3px}
+.v-c .ctl{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;
+  padding:20px 0 4px;border-top:1px solid var(--rule)}
+.v-c .ctl button{background:none;border:0;padding:0;font-size:14px;color:var(--ink-faint)}
+.v-c .ctl button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.v-c .ctl input{background:none;border:0;border-bottom:1px solid var(--rule-strong);
+  padding:3px 0;font-size:14px;min-width:150px;flex:1}
+.v-c .ctl input:focus{outline:0;border-bottom-color:var(--ink)}
+.v-c .ctl select{background:none;border:0;font-size:14px;color:var(--ink-faint)}
+.v-c .entry{padding:52px 0;border-bottom:1px solid var(--rule)}
+.v-c .entry h3{font-size:38px;line-height:1.1;max-width:18ch}
+.v-c .entry .dec{font-size:19px;line-height:1.6;margin:18px 0 0;max-width:58ch}
+.v-c .entry .why{font-size:17px;line-height:1.72;color:var(--ink-muted);margin:22px 0 0;
+  max-width:56ch;padding-left:22px;border-left:1px solid var(--rule-strong)}
+.v-c .entry .line{margin-top:26px;font-size:12px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-faint)}
+.v-c .entry .line .s.active{color:var(--active)}
+.v-c .entry .line .s.superseded{color:var(--superseded)}
+.v-c .entry .line .s.reversed{color:var(--reversed)}
+.v-c .entry.is-past{opacity:.52}
+.v-c .entry.is-past h3{font-size:21px;font-weight:400}
+.v-c .entry.is-past .why{font-size:16px}
+.v-c .foot{margin-top:20px}
+
+@media (max-width:780px){
+  .v-a .hero h1{font-size:38px} .v-a .hero{padding:56px 0 36px}
+  .v-a .row{grid-template-columns:1fr;gap:12px;padding:26px 0}
+  .v-a .rail{display:flex;gap:14px;align-items:baseline}
+  .v-a .rail .st{margin-top:0}
+  .v-a .row h3{font-size:21px}
+  .v-b .hero .wrap{grid-template-columns:1fr;gap:36px;padding-top:52px;padding-bottom:52px}
+  .v-b .hero h1{font-size:34px}
+  .v-b .shell{grid-template-columns:1fr;gap:28px}
+  .v-b .side{position:static}
+  .v-c .hero h1{font-size:44px} .v-c .hero{min-height:auto;padding:56px 0 40px}
+  .v-c .entry h3{font-size:27px} .v-c .entry{padding:36px 0}
+}
+</style>
+<style>
+/* ═══ VARIANT D — Register (index + numbered entries) ═══════════ */
+.v-d .hero{padding:80px 0 44px}
+.v-d .hero h1{font-size:54px;line-height:1.05;max-width:14ch}
+.v-d .hero p{font-size:18px;line-height:1.6;color:var(--ink-muted);max-width:52ch;margin:22px 0 30px}
+.v-d .cta{display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;
+  padding:12px 24px;font-size:15px;font-weight:500;border-radius:2px}
+.v-d .ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:18px 0 14px}
+.v-d .pill{background:none;border:1px solid var(--rule-strong);border-radius:999px;padding:5px 13px;font-size:13px;color:var(--ink-muted)}
+.v-d .pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.v-d input[type=search],.v-d select{background:var(--card);border:1px solid var(--rule-strong);border-radius:2px;padding:6px 10px;font-size:14px}
+.v-d input[type=search]{flex:1;min-width:150px}
+.v-d .idxh{font-family:var(--serif);font-size:15px;color:var(--ink-faint);padding:6px 0;border-bottom:2px solid var(--ink);margin-top:8px}
+.v-d .ir{display:grid;grid-template-columns:36px 1fr auto 14px;gap:14px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--rule);text-decoration:none}
+.v-d .ir .n{font-family:var(--serif);color:var(--ink-faint);font-size:14px}
+.v-d .ir .t{font-family:var(--serif);font-size:16.5px}
+.v-d .ir .dt{font-size:12.5px;color:var(--ink-faint);white-space:nowrap}
+.v-d .dot{width:9px;height:9px;border-radius:50%;background:var(--active)}
+.v-d .dot.superseded{background:var(--superseded)} .v-d .dot.reversed{background:var(--reversed)}
+.v-d .ir.is-past .t{color:var(--ink-faint)} .v-d .ir.is-past .dot{background:transparent;border:1.5px solid currentColor}
+.v-d .ir.is-past .dot.superseded{color:var(--superseded)} .v-d .ir.is-past .dot.reversed{color:var(--reversed)}
+.v-d .entries{margin-top:56px}
+.v-d .ent{display:grid;grid-template-columns:64px 1fr;gap:20px;padding:40px 0;border-top:1px solid var(--rule)}
+.v-d .ent .num{font-family:var(--serif);font-size:30px;color:var(--ink-faint);line-height:1}
+.v-d .ent h3{font-size:26px;line-height:1.2}
+.v-d .ent .dec{font-size:17px;line-height:1.6;margin:10px 0 0}
+.v-d .ent .why{font-size:16px;line-height:1.66;color:var(--ink-muted);margin:14px 0 0;max-width:62ch}
+.v-d .ent .foot{margin-top:18px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.v-d .ent.is-past h3,.v-d .ent.is-past .dec,.v-d .ent.is-past .why{color:var(--ink-faint)}
+.v-d .ent.is-past h3{font-weight:400}
+.v-d .sw{color:var(--active);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase}
+.v-d .sw.superseded{color:var(--superseded)} .v-d .sw.reversed{color:var(--reversed)}
+
+/* ═══ VARIANT E — Workbench (app frame) ═════════════════════════ */
+.v-e .appbar{border-bottom:1px solid var(--rule)}
+.v-e .appbar .wrap{max-width:1080px;display:flex;justify-content:space-between;align-items:center;padding-top:14px;padding-bottom:14px}
+.v-e .mark{font-family:var(--serif);font-weight:600;font-size:20px}
+.v-e .cta{background:var(--accent);color:#fff;text-decoration:none;padding:9px 16px;border-radius:3px;font-size:14px;font-weight:500}
+.v-e .hero{padding:56px 0 40px}
+.v-e .hero .wrap{max-width:1080px}
+.v-e .hero h1{font-size:44px;line-height:1.1;max-width:18ch}
+.v-e .hero p{font-size:17px;line-height:1.6;color:var(--ink-muted);max-width:56ch;margin:16px 0 0}
+.v-e .frame{max-width:1080px;margin:0 auto 56px;padding:0 24px}
+.v-e .box{border:1px solid var(--rule-strong);border-radius:6px;background:var(--card);overflow:hidden}
+.v-e .tb{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--rule);background:var(--paper-sunk);flex-wrap:wrap}
+.v-e .tb input{background:var(--card);border:1px solid var(--rule-strong);border-radius:3px;padding:7px 10px;font-size:14px;min-width:200px}
+.v-e .tb select{background:var(--card);border:1px solid var(--rule-strong);border-radius:3px;padding:7px 8px;font-size:14px}
+.v-e .seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:3px;overflow:hidden;background:var(--card)}
+.v-e .seg button{background:none;border:0;border-right:1px solid var(--rule);padding:7px 12px;font-size:13.5px;color:var(--ink-muted)}
+.v-e .seg button:last-child{border-right:0}
+.v-e .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.v-e .sp{flex:1}
+.v-e .new{background:var(--ink);color:var(--paper);border:0;padding:8px 14px;border-radius:3px;font-size:14px;font-weight:500}
+.v-e .li{display:grid;grid-template-columns:1fr 190px;gap:28px;padding:20px 20px;border-bottom:1px solid var(--rule)}
+.v-e .li:last-child{border-bottom:0}
+.v-e .li h3{font-size:19px;line-height:1.3;display:flex;align-items:center;gap:10px}
+.v-e .dot{width:8px;height:8px;border-radius:50%;background:var(--active);flex:none}
+.v-e .dot.superseded{background:var(--superseded)} .v-e .dot.reversed{background:var(--reversed)}
+.v-e .li .dec{font-size:15px;line-height:1.6;margin:6px 0 0}
+.v-e .li .why{font-size:14.5px;line-height:1.62;color:var(--ink-muted);margin:10px 0 0}
+.v-e .side{font-size:13px;color:var(--ink-muted);line-height:1.7;padding-top:3px}
+.v-e .side b{display:block;color:var(--ink);font-weight:500}
+.v-e .side select{margin-top:8px;font-size:13px;background:none;border:1px solid var(--rule-strong);border-radius:3px;padding:4px 6px;width:100%}
+.v-e .li.is-past h3{font-weight:400;color:var(--ink-faint)}
+.v-e .li.is-past .dot{background:transparent;border:1.5px solid var(--rule-strong)}
+.v-e .li.is-past .dec,.v-e .li.is-past .why{color:var(--ink-faint)}
+.v-e .li.is-past .side b{color:var(--ink-faint)}
+.v-e .count{padding:10px 20px;font-size:12.5px;color:var(--ink-faint);border-bottom:1px solid var(--rule)}
+
+/* ═══ VARIANT F — Record (question-led) ═════════════════════════ */
+.v-f .hero{padding:88px 0 40px}
+.v-f .hero h1{font-size:56px;line-height:1.04;max-width:13ch}
+.v-f .hero p{font-size:18px;line-height:1.6;color:var(--ink-muted);max-width:50ch;margin:24px 0 28px}
+.v-f .cta{font-size:17px;text-decoration:none;border-bottom:2px solid var(--ink);padding-bottom:3px}
+.v-f .ctl{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:20px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin-top:40px}
+.v-f .ctl button{background:none;border:0;padding:0;font-size:14px;color:var(--ink-faint)}
+.v-f .ctl button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.v-f .ctl input,.v-f .ctl select{background:none;border:0;border-bottom:1px solid var(--rule-strong);padding:3px 0;font-size:14px}
+.v-f .ctl input{flex:1;min-width:140px}
+.v-f .rec{padding:40px 0;border-bottom:1px solid var(--rule)}
+.v-f .rec h3{font-size:28px;line-height:1.2;margin-bottom:20px;max-width:24ch}
+.v-f dl{display:grid;grid-template-columns:104px 1fr;column-gap:24px;row-gap:12px;margin:0}
+.v-f dt{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);padding-top:4px}
+.v-f dd{margin:0;font-size:16px;line-height:1.62;max-width:60ch}
+.v-f dd.why{color:var(--ink-muted)}
+.v-f dd.st{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.v-f .stw{font-weight:500}
+.v-f .stw.active{color:var(--active)} .v-f .stw.superseded{color:var(--superseded)} .v-f .stw.reversed{color:var(--reversed)}
+.v-f dd select{font-size:13px;background:none;border:1px solid var(--rule-strong);border-radius:3px;padding:3px 6px;color:var(--ink-muted)}
+.v-f .rec.is-past h3{color:var(--ink-faint);font-weight:400}
+.v-f .rec.is-past dd:not(.st){color:var(--ink-faint)}
+.v-f .rec.is-past dt{color:var(--rule-strong)}
+.v-f .rec.is-past dt.keep{color:var(--ink-faint)}
+
+@media (max-width:780px){
+  .v-d .hero h1{font-size:36px} .v-d .hero{padding:52px 0 32px}
+  .v-d .ir{grid-template-columns:28px 1fr 14px} .v-d .ir .dt{display:none}
+  .v-d .ent{grid-template-columns:1fr;gap:8px;padding:28px 0} .v-d .ent .num{font-size:20px}
+  .v-d .ent h3{font-size:22px}
+  .v-e .hero h1{font-size:30px} .v-e .hero{padding:36px 0 28px}
+  .v-e .li{grid-template-columns:1fr;gap:12px;padding:16px}
+  .v-e .side{display:flex;gap:14px;flex-wrap:wrap;align-items:center} .v-e .side b{display:inline}
+  .v-e .side select{width:auto;margin:0}
+  .v-e .tb input{min-width:0;flex:1}
+  .v-f .hero h1{font-size:38px} .v-f .hero{padding:56px 0 32px}
+  .v-f .rec h3{font-size:23px} .v-f dl{grid-template-columns:1fr;row-gap:4px}
+  .v-f dt{margin-top:10px} .v-f dt:first-child{margin-top:0}
+}
+</style>
+<style>
+/* shared chrome for G/H/I, lifted from E */
+.v-g .appbar,.v-h .appbar,.v-i .appbar{border-bottom:1px solid var(--rule)}
+.v-g .appbar .wrap,.v-h .appbar .wrap,.v-i .appbar .wrap{max-width:1120px;display:flex;justify-content:space-between;align-items:center;padding-top:14px;padding-bottom:14px}
+.v-g .mark,.v-h .mark,.v-i .mark{font-family:var(--serif);font-weight:600;font-size:20px}
+.v-g .cta,.v-h .cta,.v-i .cta{background:var(--accent);color:#fff;text-decoration:none;padding:9px 16px;border-radius:3px;font-size:14px;font-weight:500}
+.v-g .new,.v-h .new,.v-i .new{background:var(--ink);color:var(--paper);border:0;padding:8px 14px;border-radius:3px;font-size:14px;font-weight:500}
+.v-g .hero,.v-i .hero{padding:52px 0 36px}
+.v-g .hero .wrap,.v-i .hero .wrap{max-width:1120px}
+.v-g .hero h1,.v-i .hero h1{font-size:42px;line-height:1.1;max-width:18ch}
+.v-g .hero p,.v-i .hero p{font-size:17px;line-height:1.6;color:var(--ink-muted);max-width:56ch;margin:16px 0 0}
+.v-g .frame,.v-i .frame{max-width:1120px;margin:0 auto 56px;padding:0 24px}
+.v-g .box,.v-i .box{border:1px solid var(--rule-strong);border-radius:6px;background:var(--card);overflow:hidden}
+.v-g input,.v-h input,.v-i input{background:var(--card);border:1px solid var(--rule-strong);border-radius:3px;padding:7px 10px;font-size:14px}
+.v-g .dot,.v-i .dot{width:8px;height:8px;border-radius:50%;background:var(--active);flex:none}
+.v-g .dot.superseded,.v-i .dot.superseded{background:var(--superseded)} .v-g .dot.reversed,.v-i .dot.reversed{background:var(--reversed)}
+
+/* ═══ G — Mail client: sidebar inside the frame ═════════════════ */
+.v-g .gtop{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--rule);background:var(--paper-sunk)}
+.v-g .gtop input{flex:1;max-width:340px}
+.v-g .gtop .sp{flex:1}
+.v-g .gbody{display:grid;grid-template-columns:208px 1fr;align-items:start}
+.v-g .gside{border-right:1px solid var(--rule);padding:16px 12px;background:var(--paper-sunk);align-self:stretch}
+.v-g .gside h4{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 6px;padding:0 8px;font-weight:600;font-family:var(--sans)}
+.v-g .gside .grp{margin-bottom:22px}
+.v-g .gside button{display:flex;width:100%;justify-content:space-between;background:none;border:0;padding:6px 8px;border-radius:3px;font-size:14px;color:var(--ink-muted);text-align:left}
+.v-g .gside button[aria-pressed="true"]{background:var(--card);color:var(--ink);font-weight:500;box-shadow:0 0 0 1px var(--rule)}
+.v-g .yr{font-family:var(--serif);font-size:14px;color:var(--ink-faint);padding:14px 20px 6px;display:flex;align-items:center;gap:12px}
+.v-g .yr::after{content:"";flex:1;height:1px;background:var(--rule)}
+.v-g .li{display:grid;grid-template-columns:1fr 180px;gap:28px;padding:18px 20px;border-bottom:1px solid var(--rule)}
+.v-g .li h3{font-size:19px;line-height:1.3;display:flex;align-items:center;gap:10px}
+.v-g .li .dec{font-size:15px;line-height:1.6;margin:6px 0 0}
+.v-g .li .why{font-size:14.5px;line-height:1.62;color:var(--ink-muted);margin:10px 0 0}
+.v-g .side{font-size:13px;color:var(--ink-muted);line-height:1.7;padding-top:3px}
+.v-g .side b{display:block;color:var(--ink);font-weight:500}
+.v-g .side select{margin-top:8px;font-size:13px;background:none;border:1px solid var(--rule-strong);border-radius:3px;padding:4px 6px;width:100%}
+.v-g .li.is-past h3{font-weight:400;color:var(--ink-faint)}
+.v-g .li.is-past .dot{background:transparent;border:1.5px solid var(--rule-strong)}
+.v-g .li.is-past .dec,.v-g .li.is-past .why,.v-g .li.is-past .side b{color:var(--ink-faint)}
+
+/* ═══ H — Workspace: E toolbar, B cards, no frame ═══════════════ */
+.v-h .hero{background:var(--paper-sunk);border-bottom:1px solid var(--rule)}
+.v-h .hero .wrap{max-width:1120px;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding-top:72px;padding-bottom:72px}
+.v-h .hero h1{font-size:46px;line-height:1.08}
+.v-h .hero p{font-size:17px;line-height:1.6;color:var(--ink-muted);margin:18px 0 0}
+.v-h .peek{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:6px 18px;box-shadow:0 14px 34px rgba(27,24,21,.07)}
+.v-h .peek div{border-bottom:1px solid var(--rule);padding:11px 0;font-size:14px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.v-h .peek div:last-child{border:0}
+.v-h .peek b{font-family:var(--serif);font-weight:600;font-size:15px}
+.v-h .tb{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--rule)}
+.v-h .tb .wrap{max-width:1120px;display:flex;gap:10px;align-items:center;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.v-h .tb input{min-width:200px}
+.v-h .tb select{background:var(--card);border:1px solid var(--rule-strong);border-radius:3px;padding:7px 8px;font-size:14px}
+.v-h .seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:3px;overflow:hidden;background:var(--card)}
+.v-h .seg button{background:none;border:0;border-right:1px solid var(--rule);padding:7px 12px;font-size:13.5px;color:var(--ink-muted);display:flex;gap:7px}
+.v-h .seg button:last-child{border-right:0}
+.v-h .seg button span{color:var(--ink-faint);font-size:12px}
+.v-h .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)} .v-h .seg button[aria-pressed="true"] span{color:var(--paper);opacity:.7}
+.v-h .sp{flex:1}
+.v-h .body{max-width:1120px;margin:0 auto;padding:36px 24px 56px}
+.v-h .yr{font-family:var(--serif);font-size:15px;color:var(--ink-faint);margin:26px 0 12px;display:flex;align-items:center;gap:12px}
+.v-h .yr::after{content:"";flex:1;height:1px;background:var(--rule)}
+.v-h .yr:first-child{margin-top:0}
+.v-h .card{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--active);border-radius:4px;padding:20px 22px;margin-bottom:12px}
+.v-h .card.superseded{border-left-color:var(--superseded)} .v-h .card.reversed{border-left-color:var(--reversed)}
+.v-h .card h3{font-size:21px;line-height:1.3}
+.v-h .card .dec{font-size:16px;line-height:1.6;margin:8px 0 0}
+.v-h .card .why{font-size:15px;line-height:1.65;color:var(--ink-muted);margin:12px 0 0}
+.v-h .card .foot{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:16px;flex-wrap:wrap}
+.v-h .card .foot .r{display:flex;gap:12px;align-items:center}
+.v-h .badge{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid currentColor}
+.v-h .badge.active{color:var(--active)} .v-h .badge.superseded{color:var(--superseded)} .v-h .badge.reversed{color:var(--reversed)}
+.v-h .card select{font-size:13px;background:none;border:1px solid var(--rule-strong);border-radius:3px;padding:4px 6px;color:var(--ink-muted)}
+.v-h .card.is-past{background:transparent;border-left-color:var(--rule-strong)}
+.v-h .card.is-past h3{font-weight:400}
+.v-h .card.is-past h3,.v-h .card.is-past .dec,.v-h .card.is-past .why{color:var(--ink-faint)}
+
+/* ═══ I — Tabbed register: tabs with counts, chips, edge rows ═══ */
+.v-i .tabs{display:flex;border-bottom:1px solid var(--rule);background:var(--paper-sunk);padding:0 12px}
+.v-i .tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:14px 12px 12px;font-size:14px;color:var(--ink-muted);display:flex;gap:8px;align-items:baseline;margin-bottom:-1px}
+.v-i .tabs button span{font-size:12px;color:var(--ink-faint)}
+.v-i .tabs button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+.v-i .chips{display:flex;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.v-i .chip{background:none;border:1px solid var(--rule-strong);border-radius:999px;padding:4px 12px;font-size:13px;color:var(--ink-muted)}
+.v-i .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.v-i .chips .sp{flex:1}
+.v-i .chips input{min-width:180px}
+.v-i .yr{position:sticky;top:0;z-index:2;background:var(--card);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);padding:10px 20px;border-bottom:1px solid var(--rule)}
+.v-i .li{display:grid;grid-template-columns:1fr 180px;gap:28px;padding:18px 20px 18px 24px;border-bottom:1px solid var(--rule);border-left:3px solid var(--active)}
+.v-i .li.superseded{border-left-color:var(--superseded)} .v-i .li.reversed{border-left-color:var(--reversed)}
+.v-i .li h3{font-size:19px;line-height:1.3}
+.v-i .li .dec{font-size:15px;line-height:1.6;margin:6px 0 0}
+.v-i .li .why{font-size:14.5px;line-height:1.62;color:var(--ink-muted);margin:10px 0 0}
+.v-i .side{font-size:13px;color:var(--ink-muted);line-height:1.7;padding-top:3px}
+.v-i .side b{display:block;color:var(--ink);font-weight:500}
+.v-i .side select{margin-top:8px;font-size:13px;background:none;border:1px solid var(--rule-strong);border-radius:3px;padding:4px 6px;width:100%}
+.v-i .li.is-past{border-left-color:var(--rule-strong)}
+.v-i .li.is-past h3{font-weight:400;color:var(--ink-faint)}
+.v-i .li.is-past .dec,.v-i .li.is-past .why,.v-i .li.is-past .side b{color:var(--ink-faint)}
+
+@media (max-width:780px){
+  .v-g .hero h1,.v-i .hero h1{font-size:30px} .v-g .hero,.v-i .hero{padding:36px 0 28px}
+  .v-g .gbody{grid-template-columns:1fr} .v-g .gside{border-right:0;border-bottom:1px solid var(--rule)}
+  .v-g .gside .grp{display:inline-block;vertical-align:top;margin-right:18px}
+  .v-g .li,.v-i .li{grid-template-columns:1fr;gap:12px;padding:16px}
+  .v-g .side,.v-i .side{display:flex;gap:14px;flex-wrap:wrap;align-items:center} .v-g .side b,.v-i .side b{display:inline}
+  .v-g .side select,.v-i .side select{width:auto;margin:0}
+  .v-h .hero .wrap{grid-template-columns:1fr;gap:32px;padding-top:44px;padding-bottom:44px}
+  .v-h .hero h1{font-size:32px}
+  .v-h .tb input{min-width:0;flex:1}
+  .v-i .tabs{overflow-x:auto} .v-i .chips input{min-width:0;flex:1}
+}
+</style>
+<style>
+/* G, revised: rows are read-only and open a drawer; drawer + toast live outside #app */
+.v-g .li{cursor:pointer}
+.v-g .li:hover{background:var(--paper-sunk)}
+.v-g .li .why{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.v-g .side .stw{display:block;margin-top:6px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+.v-g .stw.active{color:var(--active)} .v-g .stw.superseded{color:var(--superseded)} .v-g .stw.reversed{color:var(--reversed)}
+.v-g .li.is-past .stw{opacity:.8}
+
+#dr-bg{position:fixed;inset:0;background:rgba(27,24,21,.28);z-index:40;opacity:0;pointer-events:none;transition:opacity .18s}
+#dr{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--card);z-index:41;
+  border-left:1px solid var(--rule-strong);box-shadow:-18px 0 40px rgba(27,24,21,.10);
+  transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;display:flex;flex-direction:column}
+body.dr-open #dr-bg{opacity:1;pointer-events:auto}
+body.dr-open #dr{transform:none}
+#dr .hd{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--card)}
+#dr .hd .x{background:none;border:0;font-size:22px;line-height:1;color:var(--ink-muted);padding:4px 6px}
+#dr .bd{padding:24px;flex:1}
+#dr h2{font-size:27px;line-height:1.2;margin:0 0 20px}
+#dr dl{display:grid;grid-template-columns:96px 1fr;column-gap:20px;row-gap:14px;margin:0}
+#dr dt{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);padding-top:3px}
+#dr dd{margin:0;font-size:15.5px;line-height:1.62}
+#dr dd.why{color:var(--ink-muted)}
+#dr .sec{margin-top:28px;padding-top:20px;border-top:1px solid var(--rule)}
+#dr .sec h4{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px;font-weight:600;font-family:var(--sans)}
+#dr .seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:3px;overflow:hidden}
+#dr .seg button{background:none;border:0;border-right:1px solid var(--rule);padding:8px 14px;font-size:14px;color:var(--ink-muted)}
+#dr .seg button:last-child{border-right:0}
+#dr .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+#dr .hint{font-size:13px;color:var(--ink-faint);margin:10px 0 0;line-height:1.5}
+#dr form label{display:block;font-size:13px;font-weight:500;margin:16px 0 6px}
+#dr form label:first-child{margin-top:0}
+#dr form input,#dr form textarea,#dr form select{width:100%;background:var(--paper);border:1px solid var(--rule-strong);border-radius:3px;padding:9px 10px;font-size:15px}
+#dr form textarea{min-height:88px;resize:vertical;font-family:var(--sans);line-height:1.5}
+#dr form .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#dr form .row2 label{margin-top:16px}
+#dr .ft{display:flex;gap:10px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--rule);position:sticky;bottom:0;background:var(--card)}
+#dr .btn{background:var(--ink);color:var(--paper);border:0;padding:10px 18px;border-radius:3px;font-size:14px;font-weight:500}
+#dr .ghost{background:none;border:1px solid var(--rule-strong);color:var(--ink-muted);padding:10px 16px;border-radius:3px;font-size:14px}
+#dr .stw{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:500}
+#dr .stw.active{color:var(--active)} #dr .stw.superseded{color:var(--superseded)} #dr .stw.reversed{color:var(--reversed)}
+
+#toast{position:fixed;left:20px;bottom:20px;z-index:50;background:#17161A;color:#fff;border-radius:4px;
+  padding:11px 14px;font-size:14px;display:flex;gap:16px;align-items:center;box-shadow:0 8px 30px rgba(0,0,0,.25);
+  transform:translateY(12px);opacity:0;pointer-events:none;transition:all .18s}
+#toast.on{transform:none;opacity:1;pointer-events:auto}
+#toast button{background:none;border:0;color:#fff;font-weight:600;padding:0;text-decoration:underline;text-underline-offset:3px}
+@media (max-width:780px){ #toast{left:12px;right:12px;bottom:72px} #dr form .row2{grid-template-columns:1fr} }
+</style>
+<style>
+/* G, final: toast top-right, edit mode, clear filters vs reset demo */
+#toast{left:auto;right:20px;bottom:auto;top:20px;transform:translateY(-12px)}
+#toast.on{transform:none}
+@media (max-width:780px){ #toast{left:12px;right:12px;top:12px;bottom:auto} }
+#dr .hd .acts{display:flex;gap:8px;align-items:center}
+#dr .hd .edit{background:none;border:1px solid var(--rule-strong);border-radius:3px;padding:6px 12px;font-size:13px;color:var(--ink-muted)}
+#dr .hd .edit:hover{color:var(--ink);border-color:var(--ink)}
+#dr .hd .ttl{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);font-weight:500}
+.v-g .appbar .nav{display:flex;gap:10px;align-items:center}
+.v-g .appbar .ghost{background:none;border:1px solid var(--rule-strong);border-radius:3px;padding:8px 14px;font-size:14px;color:var(--ink-muted)}
+.v-g .appbar .ghost:hover{color:var(--ink);border-color:var(--ink)}
+.v-g .gtop .clear{background:none;border:0;font-size:13.5px;color:var(--ink-muted);text-decoration:underline;text-underline-offset:3px;padding:0 4px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="sw"></div>
+
+<script>
+const AREAS = ['Product','Engineering','GTM','Hiring'];
+const SEED = [
+ {id:11,date:'2026-02-09',area:'Product',owner:'Priya',status:'active',
+  title:'Build the driver handover screen ourselves',
+  dec:'We are building the end-of-shift handover screen in house instead of buying Shiftbase and wrapping it.',
+  why:'Handover is the one screen every driver touches twice a day, and it is where our data model actually differs from everyone else. Buying it saves about five weeks and leaves the most-used screen in the product owned by someone else.'},
+ {id:10,date:'2025-10-16',area:'Product',owner:'Ellie',status:'active',
+  title:'Stop publishing the weekly changelog',
+  dec:'The changelog goes out when something matters, as an email to the depots it affects.',
+  why:'Three people opened it last quarter. Two of them work here.'},
+ {id:9,date:'2025-07-08',area:'GTM',owner:'Marcus',status:'active',
+  title:'Flat monthly pricing by depot size',
+  dec:'One price per band: under ten vehicles, ten to forty, forty and up.',
+  why:'Per-vehicle billing turned every renewal into a negotiation about the vehicle count, and depots kept taking vans off the account over winter. Banding it stops the number moving and renewal takes one email.'},
+ {id:8,date:'2025-04-30',area:'Hiring',owner:'Marcus',status:'superseded',
+  title:'Freeze hiring until August',
+  dec:'No offers until the August board meeting. Both open roles come down.',
+  why:'Eleven months of runway and a pipeline that had gone quiet since February. Waiting costs less than hiring now and having the harder conversation in October.'},
+ {id:7,date:'2025-02-13',area:'Engineering',owner:'Naz',status:'active',
+  title:'Rewrite the driver app as native Android',
+  dec:'The driver app becomes native Android. iOS waits until someone asks for it.',
+  why:'Offline route sync broke worst on the handsets our drivers actually carry, which are four-year-old budget Androids. Seven of our forty depots issue phones at all. Everyone else uses whatever is in their pocket.'},
+ {id:6,date:'2025-01-22',area:'Hiring',owner:'Marcus',status:'active',
+  title:'Hire a support lead before a second salesperson',
+  dec:'Support lead first. The sales hire moves to the second half of the year.',
+  why:'Priya spent most of January answering tickets. Another salesperson adds depots to a queue one founder is already clearing by hand at night.'},
+ {id:5,date:'2024-11-05',area:'Engineering',owner:'Tom',status:'active',
+  title:'Drop the Redis cache',
+  dec:'Route lookups go straight to Postgres. Redis comes out entirely.',
+  why:'The cache saved roughly 80ms on a page nobody complained about and cost us four incidents in three months, every one of them stale route data shown to a driver mid-shift.'},
+ {id:4,date:'2024-09-11',area:'GTM',owner:'Priya',status:'active',
+  title:'Turn down the Veolia pilot',
+  dec:'We said no to the forty-vehicle pilot.',
+  why:'They wanted SSO, an audit log, a named account manager and a security review before signing. All of it reasonable for them. It would have made us an enterprise company eighteen months before we had the people, and the pilot fee would not have covered the first requirement.'},
+ {id:3,date:'2024-06-27',area:'Engineering',owner:'Tom',status:'reversed',
+  title:'Build the driver app in React Native',
+  dec:'One React Native codebase covering both platforms.',
+  why:'Three of us wrote React every day and nobody wanted to learn two mobile stacks at once. That held right up until offline sync, which we never got stable on older handsets.'},
+ {id:2,date:'2024-05-02',area:'GTM',owner:'Marcus',status:'superseded',
+  title:'Bill per vehicle',
+  dec:'Pricing is per vehicle on the account, billed monthly.',
+  why:'Depots budget in vehicles, so the invoice matches how they already think. Seat pricing punished them for letting six drivers share two logins, which is what they all do anyway.'},
+ {id:1,date:'2024-03-14',area:'Product',owner:'Priya',status:'active',
+  title:'Ship the route editor without drag and drop',
+  dec:'The route editor is a keyboard-first list. The map shows the result and takes no input.',
+  why:'We watched four depot managers plan a week of routes. All four typed. None touched the map except to check it. Drag and drop was three weeks of work for the demo, not for them.'},
+];
+
+const S = {
+  variant: (new URLSearchParams(location.search).get('variant') || 'A').toUpperCase(),
+  status: 'all', area: 'all', q: '',
+  items: SEED.map(d => ({...d})),
+};
+const NAMES = {A:'Ledger', B:'Sidebar + cards', C:'Statement'};
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = iso => { const d=new Date(iso+'T00:00:00');
+  return {d: d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}), y: d.getFullYear()}; };
+const past = d => d.status !== 'active';
+
+function visible(){
+  const q = S.q.trim().toLowerCase();
+  return S.items.filter(d =>
+    (S.status === 'all' || d.status === S.status) &&
+    (S.area === 'all' || d.area === S.area) &&
+    (!q || (d.title+' '+d.dec+' '+d.why).toLowerCase().includes(q)));
+}
+function setStatus(id, st){ const d = S.items.find(x=>x.id===id); if(d) d.status = st; render(); }
+function reset(){ S.items = SEED.map(d=>({...d})); S.status='all'; S.area='all'; S.q=''; render(); }
+function counts(){ const c={all:S.items.length,active:0,superseded:0,reversed:0};
+  S.items.forEach(d=>c[d.status]++); return c; }
+
+function actions(d){
+  const opts = ['active','superseded','reversed'].filter(s => s !== d.status);
+  return opts.map(s =>
+    `<button class="setbtn" data-set="${d.id}:${s}">Mark ${s}</button>`).join('');
+}
+
+const HERO = {
+  h: 'Six months from now, someone will ask why.',
+  p: 'Decision Log records what your team decided, who decided it, and the reasoning behind it. Months later you open the log and read that reasoning in the words of the person who made the call.',
+};
+
+/* ── A ──────────────────────────────────────────────────────────── */
+function A(){
+  const list = visible();
+  const rows = list.map(d => { const f = fmt(d.date); return `
+    <article class="row ${past(d)?'is-past':''}">
+      <div class="rail">
+        <div class="d">${f.d}</div><div class="y">${f.y}</div>
+        <div class="st ${d.status}">${d.status}</div>
+      </div>
+      <div>
+        <h3>${esc(d.title)}</h3>
+        <p class="dec">${esc(d.dec)}</p>
+        <p class="why">${esc(d.why)}</p>
+        <div class="foot">
+          <div class="meta" style="margin-bottom:10px">${d.owner} &middot; ${d.area}</div>
+          ${actions(d)}
+        </div>
+      </div>
+    </article>`; }).join('');
+  const pill = (v,l) => `<button class="pill" data-status="${v}" aria-pressed="${S.status===v}">${l}</button>`;
+  return `<div class="v-a">
+    <header class="hero"><div class="wrap">
+      <h1>${HERO.h}</h1><p>${HERO.p}</p>
+      <a class="cta" href="#log">Try the demo</a>
+    </div></header>
+    <div class="bar" id="log"><div class="wrap">
+      ${pill('all','All')}${pill('active','Active')}${pill('superseded','Superseded')}${pill('reversed','Reversed')}
+      <select data-area>${['all',...AREAS].map(a=>`<option ${S.area===a?'selected':''} value="${a}">${a==='all'?'Every area':a}</option>`).join('')}</select>
+      <input type="search" data-q value="${esc(S.q)}" placeholder="Search decisions and reasoning" />
+      <button class="setbtn" data-reset>Reset demo</button>
+    </div></div>
+    <main class="wrap">${rows || `<p class="empty">Nothing matches that. Try clearing the search or widening the filters.</p>`}</main>
+  </div>`;
+}
+
+/* ── B ──────────────────────────────────────────────────────────── */
+function B(){
+  const list = visible(); const c = counts();
+  let out = '', yr = null;
+  list.forEach(d => {
+    const f = fmt(d.date);
+    if (f.y !== yr) { yr = f.y; out += `<div class="yr">${yr}</div>`; }
+    out += `<article class="card ${d.status} ${past(d)?'is-past':''}">
+      <h3>${esc(d.title)}</h3>
+      <p class="dec">${esc(d.dec)}</p>
+      <p class="why">${esc(d.why)}</p>
+      <div class="foot">
+        <span class="meta">${f.d} ${f.y} &middot; ${d.owner} &middot; ${d.area}</span>
+        <span class="badge ${d.status}">${d.status}</span>
+      </div>
+      <div class="foot">${actions(d)}</div>
+    </article>`;
+  });
+  const sbtn = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}"><span>${l}</span><span>${c[v]}</span></button>`;
+  return `<div class="v-b">
+    <header class="hero"><div class="wrap">
+      <div>
+        <h1>${HERO.h}</h1><p>${HERO.p}</p>
+        <a class="cta" href="#log">Try the demo</a>
+      </div>
+      <div class="peek">
+        ${SEED.slice(0,5).map(d=>`<div><b>${esc(d.title)}</b><span class="meta">${fmt(d.date).y}</span></div>`).join('')}
+      </div>
+    </div></header>
+    <div class="shell" id="log">
+      <aside class="side">
+        <div class="grp"><input data-q value="${esc(S.q)}" placeholder="Search" /></div>
+        <div class="grp"><h4>Status</h4>${sbtn('all','All')}${sbtn('active','Active')}${sbtn('superseded','Superseded')}${sbtn('reversed','Reversed')}</div>
+        <div class="grp"><h4>Area</h4>
+          <button data-area="all" aria-pressed="${S.area==='all'}"><span>Every area</span></button>
+          ${AREAS.map(a=>`<button data-area="${a}" aria-pressed="${S.area===a}"><span>${a}</span><span>${S.items.filter(d=>d.area===a).length}</span></button>`).join('')}
+        </div>
+        <button data-reset style="color:var(--accent)"><span>Reset demo</span></button>
+      </aside>
+      <main>${out || `<p class="empty">Nothing matches that. Try clearing the search or widening the filters.</p>`}</main>
+    </div>
+  </div>`;
+}
+
+/* ── C ──────────────────────────────────────────────────────────── */
+function C(){
+  const list = visible();
+  const rows = list.map(d => { const f = fmt(d.date); return `
+    <article class="entry ${past(d)?'is-past':''}">
+      <h3>${esc(d.title)}</h3>
+      <p class="dec">${esc(d.dec)}</p>
+      <p class="why">${esc(d.why)}</p>
+      <div class="line">${f.d} ${f.y} &nbsp;/&nbsp; ${d.owner} &nbsp;/&nbsp; ${d.area} &nbsp;/&nbsp; <span class="s ${d.status}">${d.status}</span></div>
+      <div class="foot">${actions(d)}</div>
+    </article>`; }).join('');
+  const t = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}">${l}</button>`;
+  return `<div class="v-c">
+    <header class="hero"><div class="wrap">
+      <h1>${HERO.h}</h1><p>${HERO.p}</p>
+      <a class="cta" href="#log">Try the demo</a>
+    </div></header>
+    <div class="wrap" id="log">
+      <div class="ctl">
+        ${t('all','All')}${t('active','Active')}${t('superseded','Superseded')}${t('reversed','Reversed')}
+        <select data-area>${['all',...AREAS].map(a=>`<option ${S.area===a?'selected':''} value="${a}">${a==='all'?'Every area':a}</option>`).join('')}</select>
+        <input data-q value="${esc(S.q)}" placeholder="Search" />
+        <button data-reset>Reset</button>
+      </div>
+      <main>${rows || `<p class="empty">Nothing matches that.</p>`}</main>
+    </div>
+  </div>`;
+}
+
+const V = {A, B, C};
+function render(){
+  const keep = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.q !== undefined;
+  const pos = keep ? document.activeElement.selectionStart : null;
+  document.getElementById('app').innerHTML = V[S.variant]();
+  if (keep) { const el = document.querySelector('[data-q]'); if (el) { el.focus(); el.setSelectionRange(pos,pos); } }
+  const k = Object.keys(V);
+  document.getElementById('sw').innerHTML =
+    `<button data-nav="-1">&larr;</button><span class="lbl"><b>${S.variant}</b> &nbsp;${NAMES[S.variant]}</span><button data-nav="1">&rarr;</button>`;
+}
+function go(step){
+  const k = Object.keys(V), i = k.indexOf(S.variant);
+  S.variant = k[(i + step + k.length) % k.length];
+  const u = new URL(location); u.searchParams.set('variant', S.variant);
+  history.replaceState(null,'',u); render(); window.scrollTo(0,0);
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-nav],[data-status],[data-area],[data-set],[data-reset]');
+  if (!t) return;
+  if (t.dataset.nav) return go(+t.dataset.nav);
+  if (t.dataset.reset !== undefined) return reset();
+  if (t.dataset.set) { const [id,st] = t.dataset.set.split(':'); return setStatus(+id, st); }
+  if (t.dataset.status) { S.status = t.dataset.status; return render(); }
+  if (t.dataset.area !== undefined && t.tagName === 'BUTTON') { S.area = t.dataset.area; return render(); }
+});
+document.addEventListener('input', e => {
+  if (e.target.dataset.q !== undefined) { S.q = e.target.value; render(); }
+});
+document.addEventListener('change', e => {
+  if (e.target.hasAttribute('data-area')) { S.area = e.target.value; render(); }
+});
+document.addEventListener('keydown', e => {
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable) return;
+  if (e.key === 'ArrowLeft') go(-1);
+  if (e.key === 'ArrowRight') go(1);
+});
+render();
+</script>
+<script>
+NAMES.D = 'Register'; NAMES.E = 'Workbench'; NAMES.F = 'Record';
+function statusSel(d){
+  return `<select data-setsel="${d.id}" aria-label="Change status">${
+    ['active','superseded','reversed'].map(s=>`<option value="${s}" ${s===d.status?'selected':''}>${s[0].toUpperCase()+s.slice(1)}</option>`).join('')
+  }</select>`;
+}
+const areaSel = () => `<select data-area>${['all',...AREAS].map(a=>`<option ${S.area===a?'selected':''} value="${a}">${a==='all'?'Every area':a}</option>`).join('')}</select>`;
+
+/* ── D ──────────────────────────────────────────────────────────── */
+function D(){
+  const list = visible();
+  const pill = (v,l) => `<button class="pill" data-status="${v}" aria-pressed="${S.status===v}">${l}</button>`;
+  const idx = list.map(d => { const f=fmt(d.date); return `
+    <a class="ir ${past(d)?'is-past':''}" href="#e${d.id}">
+      <span class="n">${d.id}</span><span class="t">${esc(d.title)}</span>
+      <span class="dt">${f.d} ${f.y}</span><span class="dot ${d.status}"></span>
+    </a>`; }).join('');
+  const ents = list.map(d => { const f=fmt(d.date); return `
+    <article class="ent ${past(d)?'is-past':''}" id="e${d.id}">
+      <div class="num">${d.id}</div>
+      <div>
+        <h3>${esc(d.title)}</h3>
+        <p class="dec">${esc(d.dec)}</p>
+        <p class="why">${esc(d.why)}</p>
+        <div class="foot">
+          <span class="meta">${f.d} ${f.y} &middot; ${d.owner} &middot; ${d.area}</span>
+          <span class="sw ${d.status}">${d.status}</span>
+          ${statusSel(d)}
+        </div>
+      </div>
+    </article>`; }).join('');
+  return `<div class="v-d">
+    <header class="hero"><div class="wrap">
+      <h1>${HERO.h}</h1><p>${HERO.p}</p><a class="cta" href="#log">Try the demo</a>
+    </div></header>
+    <div class="wrap" id="log">
+      <div class="ctl">
+        ${pill('all','All')}${pill('active','Active')}${pill('superseded','Superseded')}${pill('reversed','Reversed')}
+        ${areaSel()}
+        <input type="search" data-q value="${esc(S.q)}" placeholder="Search" />
+        <button class="setbtn" data-reset>Reset demo</button>
+      </div>
+      <div class="idxh">Contents &middot; ${list.length} of ${S.items.length}</div>
+      ${idx || `<p class="empty">Nothing matches that.</p>`}
+      <div class="entries">${ents}</div>
+    </div>
+  </div>`;
+}
+
+/* ── E ──────────────────────────────────────────────────────────── */
+function E(){
+  const list = visible();
+  const seg = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}">${l}</button>`;
+  const rows = list.map(d => { const f=fmt(d.date); return `
+    <div class="li ${past(d)?'is-past':''}">
+      <div>
+        <h3><span class="dot ${d.status}"></span>${esc(d.title)}</h3>
+        <p class="dec">${esc(d.dec)}</p>
+        <p class="why">${esc(d.why)}</p>
+      </div>
+      <div class="side">
+        <b>${f.d} ${f.y}</b>${d.owner}<br>${d.area}
+        ${statusSel(d)}
+      </div>
+    </div>`; }).join('');
+  return `<div class="v-e">
+    <div class="appbar"><div class="wrap"><span class="mark">Decision Log</span><a class="cta" href="#log">Try the demo</a></div></div>
+    <header class="hero"><div class="wrap"><h1>${HERO.h}</h1><p>${HERO.p}</p></div></header>
+    <div class="frame" id="log"><div class="box">
+      <div class="tb">
+        <input data-q value="${esc(S.q)}" placeholder="Search decisions" />
+        <span class="seg">${seg('all','All')}${seg('active','Active')}${seg('superseded','Superseded')}${seg('reversed','Reversed')}</span>
+        ${areaSel()}
+        <span class="sp"></span>
+        <button class="setbtn" data-reset>Reset</button>
+        <button class="new" title="Not wired in this prototype">New decision</button>
+      </div>
+      <div class="count">${list.length} decision${list.length===1?'':'s'}</div>
+      ${rows || `<p class="empty" style="padding:40px 20px">Nothing matches that.</p>`}
+    </div></div>
+  </div>`;
+}
+
+/* ── F ──────────────────────────────────────────────────────────── */
+function F(){
+  const list = visible();
+  const t = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}">${l}</button>`;
+  const rows = list.map(d => { const f=fmt(d.date); return `
+    <article class="rec ${past(d)?'is-past':''}">
+      <h3>${esc(d.title)}</h3>
+      <dl>
+        <dt>Decided</dt><dd>${esc(d.dec)}</dd>
+        <dt>Because</dt><dd class="why">${esc(d.why)}</dd>
+        <dt>On</dt><dd>${f.d} ${f.y}, by ${d.owner} &middot; ${d.area}</dd>
+        <dt class="keep">Standing</dt><dd class="st"><span class="stw ${d.status}">${d.status[0].toUpperCase()+d.status.slice(1)}</span>${statusSel(d)}</dd>
+      </dl>
+    </article>`; }).join('');
+  return `<div class="v-f">
+    <header class="hero"><div class="wrap"><h1>${HERO.h}</h1><p>${HERO.p}</p><a class="cta" href="#log">Try the demo</a></div></header>
+    <div class="wrap" id="log">
+      <div class="ctl">
+        ${t('all','All')}${t('active','Active')}${t('superseded','Superseded')}${t('reversed','Reversed')}
+        ${areaSel()}
+        <input data-q value="${esc(S.q)}" placeholder="Search" />
+        <button data-reset>Reset</button>
+      </div>
+      ${rows || `<p class="empty">Nothing matches that.</p>`}
+    </div>
+  </div>`;
+}
+
+V.D = D; V.E = E; V.F = F;
+document.addEventListener('change', e => {
+  if (e.target.dataset.setsel) setStatus(+e.target.dataset.setsel, e.target.value);
+});
+if (V[S.variant]) render();
+</script>
+<script>
+NAMES.G = 'Mail client'; NAMES.H = 'Workspace'; NAMES.I = 'Tabbed register';
+const appbar = cls => `<div class="appbar"><div class="wrap"><span class="mark">Decision Log</span><a class="cta" href="#log">Try the demo</a></div></div>`;
+const rowEI = (d, cls) => { const f=fmt(d.date); return `
+  <div class="li ${d.status} ${past(d)?'is-past':''}">
+    <div>
+      <h3>${cls==='dot'?`<span class="dot ${d.status}"></span>`:''}${esc(d.title)}</h3>
+      <p class="dec">${esc(d.dec)}</p>
+      <p class="why">${esc(d.why)}</p>
+    </div>
+    <div class="side"><b>${f.d} ${f.y}</b>${d.owner}<br>${d.area}${statusSel(d)}</div>
+  </div>`; };
+function byYear(list, rowFn, yrCls='yr'){
+  let out='', yr=null;
+  list.forEach(d => { const y=fmt(d.date).y; if (y!==yr){ yr=y; out+=`<div class="${yrCls}">${y}</div>`; } out+=rowFn(d); });
+  return out;
+}
+
+/* ── G ──────────────────────────────────────────────────────────── */
+function G(){
+  const list = visible(), c = counts();
+  const sb = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}"><span>${l}</span><span>${c[v]}</span></button>`;
+  return `<div class="v-g">
+    ${appbar()}
+    <header class="hero"><div class="wrap"><h1>${HERO.h}</h1><p>${HERO.p}</p></div></header>
+    <div class="frame" id="log"><div class="box">
+      <div class="gtop">
+        <input data-q value="${esc(S.q)}" placeholder="Search decisions" />
+        <span class="sp"></span>
+        <button class="setbtn" data-reset>Reset</button>
+        <button class="new" title="Not wired in this prototype">New decision</button>
+      </div>
+      <div class="gbody">
+        <aside class="gside">
+          <div class="grp"><h4>Status</h4>${sb('all','All')}${sb('active','Active')}${sb('superseded','Superseded')}${sb('reversed','Reversed')}</div>
+          <div class="grp"><h4>Area</h4>
+            <button data-area="all" aria-pressed="${S.area==='all'}"><span>Every area</span></button>
+            ${AREAS.map(a=>`<button data-area="${a}" aria-pressed="${S.area===a}"><span>${a}</span><span>${S.items.filter(d=>d.area===a).length}</span></button>`).join('')}
+          </div>
+        </aside>
+        <main>${byYear(list, d=>rowEI(d,'dot')) || `<p class="empty" style="padding:40px 20px">Nothing matches that.</p>`}</main>
+      </div>
+    </div></div>
+  </div>`;
+}
+
+/* ── H ──────────────────────────────────────────────────────────── */
+function H(){
+  const list = visible(), c = counts();
+  const seg = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}">${l}<span>${c[v]}</span></button>`;
+  const card = d => { const f=fmt(d.date); return `
+    <article class="card ${d.status} ${past(d)?'is-past':''}">
+      <h3>${esc(d.title)}</h3>
+      <p class="dec">${esc(d.dec)}</p>
+      <p class="why">${esc(d.why)}</p>
+      <div class="foot">
+        <span class="meta">${f.d} ${f.y} &middot; ${d.owner} &middot; ${d.area}</span>
+        <span class="r"><span class="badge ${d.status}">${d.status}</span>${statusSel(d)}</span>
+      </div>
+    </article>`; };
+  return `<div class="v-h">
+    ${appbar()}
+    <header class="hero"><div class="wrap">
+      <div><h1>${HERO.h}</h1><p>${HERO.p}</p></div>
+      <div class="peek">${SEED.slice(0,5).map(d=>`<div><b>${esc(d.title)}</b><span class="meta">${fmt(d.date).y}</span></div>`).join('')}</div>
+    </div></header>
+    <div class="tb" id="log"><div class="wrap">
+      <input data-q value="${esc(S.q)}" placeholder="Search decisions" />
+      <span class="seg">${seg('all','All')}${seg('active','Active')}${seg('superseded','Superseded')}${seg('reversed','Reversed')}</span>
+      ${areaSel()}
+      <span class="sp"></span>
+      <button class="setbtn" data-reset>Reset</button>
+      <button class="new" title="Not wired in this prototype">New decision</button>
+    </div></div>
+    <div class="body">${byYear(list, card) || `<p class="empty">Nothing matches that.</p>`}</div>
+  </div>`;
+}
+
+/* ── I ──────────────────────────────────────────────────────────── */
+function I(){
+  const list = visible(), c = counts();
+  const tab = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}">${l}<span>${c[v]}</span></button>`;
+  const chip = (v,l) => `<button class="chip" data-area="${v}" aria-pressed="${S.area===v}">${l}</button>`;
+  return `<div class="v-i">
+    ${appbar()}
+    <header class="hero"><div class="wrap"><h1>${HERO.h}</h1><p>${HERO.p}</p></div></header>
+    <div class="frame" id="log"><div class="box">
+      <div class="tabs">${tab('all','All')}${tab('active','Active')}${tab('superseded','Superseded')}${tab('reversed','Reversed')}</div>
+      <div class="chips">
+        ${chip('all','Every area')}${AREAS.map(a=>chip(a,a)).join('')}
+        <span class="sp"></span>
+        <input data-q value="${esc(S.q)}" placeholder="Search" />
+        <button class="setbtn" data-reset>Reset</button>
+        <button class="new" title="Not wired in this prototype">New decision</button>
+      </div>
+      ${byYear(list, d=>rowEI(d,'edge')) || `<p class="empty" style="padding:40px 20px">Nothing matches that.</p>`}
+    </div></div>
+  </div>`;
+}
+
+V.G = G; V.H = H; V.I = I;
+if (V[S.variant]) render();
+</script>
+<div id="dr-bg"></div><aside id="dr" aria-hidden="true"></aside><div id="toast" role="status"></div>
+<script>
+NAMES.G = 'Mail client + drawer';
+S.drawer = null; let toastTimer = null;
+const cap = s => s[0].toUpperCase()+s.slice(1);
+
+function toast(msg, undo){
+  const el = document.getElementById('toast');
+  el.innerHTML = `<span>${msg}</span>${undo?'<button data-undo>Undo</button>':''}`;
+  el.classList.add('on'); clearTimeout(toastTimer);
+  el._undo = undo || null;
+  toastTimer = setTimeout(()=>el.classList.remove('on'), undo ? 6000 : 3000);
+}
+function openDrawer(dr){ S.drawer = dr; document.body.classList.add('dr-open'); renderDrawer(); }
+function closeDrawer(){ S.drawer = null; document.body.classList.remove('dr-open'); }
+
+function renderDrawer(){
+  const el = document.getElementById('dr'); if (!S.drawer) return;
+  if (S.drawer.type === 'view'){
+    const d = S.items.find(x=>x.id===S.drawer.id); if (!d) return closeDrawer();
+    const f = fmt(d.date);
+    el.innerHTML = `
+      <div class="hd"><span class="stw ${d.status}">${cap(d.status)}</span><button class="x" data-close aria-label="Close">&times;</button></div>
+      <div class="bd">
+        <h2>${esc(d.title)}</h2>
+        <dl>
+          <dt>Decided</dt><dd>${esc(d.dec)}</dd>
+          <dt>Because</dt><dd class="why">${esc(d.why)}</dd>
+          <dt>On</dt><dd>${f.d} ${f.y}</dd>
+          <dt>Owner</dt><dd>${d.owner}</dd>
+          <dt>Area</dt><dd>${d.area}</dd>
+        </dl>
+        <div class="sec">
+          <h4>Standing</h4>
+          <span class="seg">${['active','superseded','reversed'].map(s=>`<button data-st="${s}" aria-pressed="${d.status===s}">${cap(s)}</button>`).join('')}</span>
+          <p class="hint">${d.status==='active' ? 'Mark it superseded if a later decision replaced it, or reversed if the team went back on it.' : 'Marking it active again puts it back in force.'}</p>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div class="hd"><span class="stw">New decision</span><button class="x" data-close aria-label="Close">&times;</button></div>
+      <form id="newf">
+      <div class="bd">
+        <label>Title</label><input name="title" required autofocus placeholder="One line, the way you'd say it out loud" />
+        <label>What we decided</label><textarea name="dec" required placeholder="The call itself"></textarea>
+        <label>Why</label><textarea name="why" required placeholder="The reasoning, in your words. This is the part that decays."></textarea>
+        <div class="row2">
+          <div><label>Decided on</label><input name="date" type="date" required value="${new Date().toISOString().slice(0,10)}" max="${new Date().toISOString().slice(0,10)}" /></div>
+          <div><label>Owner</label><input name="owner" required placeholder="First name" /></div>
+        </div>
+        <label>Area</label><select name="area" required>${AREAS.map(a=>`<option>${a}</option>`).join('')}</select>
+      </div>
+      <div class="ft"><button type="button" class="ghost" data-close>Cancel</button><button class="btn" type="submit">Add decision</button></div>
+      </form>`;
+  }
+}
+
+/* G, revised: read-only rows, click opens drawer */
+V.G = function(){
+  const list = visible(), c = counts();
+  const sb = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}"><span>${l}</span><span>${c[v]}</span></button>`;
+  const row = d => { const f=fmt(d.date); return `
+    <div class="li ${past(d)?'is-past':''}" data-open="${d.id}" role="button" tabindex="0">
+      <div>
+        <h3><span class="dot ${d.status}"></span>${esc(d.title)}</h3>
+        <p class="dec">${esc(d.dec)}</p>
+        <p class="why">${esc(d.why)}</p>
+      </div>
+      <div class="side"><b>${f.d} ${f.y}</b>${d.owner}<br>${d.area}<span class="stw ${d.status}">${d.status}</span></div>
+    </div>`; };
+  return `<div class="v-g">
+    ${appbar()}
+    <header class="hero"><div class="wrap"><h1>${HERO.h}</h1><p>${HERO.p}</p></div></header>
+    <div class="frame" id="log"><div class="box">
+      <div class="gtop">
+        <input data-q value="${esc(S.q)}" placeholder="Search decisions" />
+        <span class="sp"></span>
+        <button class="setbtn" data-reset>Reset</button>
+        <button class="new" data-new>New decision</button>
+      </div>
+      <div class="gbody">
+        <aside class="gside">
+          <div class="grp"><h4>Status</h4>${sb('all','All')}${sb('active','Active')}${sb('superseded','Superseded')}${sb('reversed','Reversed')}</div>
+          <div class="grp"><h4>Area</h4>
+            <button data-area="all" aria-pressed="${S.area==='all'}"><span>Every area</span></button>
+            ${AREAS.map(a=>`<button data-area="${a}" aria-pressed="${S.area===a}"><span>${a}</span><span>${S.items.filter(d=>d.area===a).length}</span></button>`).join('')}
+          </div>
+        </aside>
+        <main>${byYear(list, row) || `<p class="empty" style="padding:40px 20px">Nothing matches that.</p>`}</main>
+      </div>
+    </div></div>
+  </div>`;
+};
+
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t.closest('[data-close]') || t.id === 'dr-bg') return closeDrawer();
+  if (t.closest('[data-new]')) return openDrawer({type:'create'});
+  const st = t.closest('[data-st]');
+  if (st && S.drawer && S.drawer.type==='view'){
+    const d = S.items.find(x=>x.id===S.drawer.id); const prev = d.status, next = st.dataset.st;
+    if (prev === next) return;
+    d.status = next; render(); renderDrawer();
+    return toast(`Marked “${d.title}” ${next}`, () => { d.status = prev; render(); renderDrawer(); toast('Put back'); });
+  }
+  if (t.closest('[data-undo]')){ const el=document.getElementById('toast'); const u=el._undo; el.classList.remove('on'); if(u) u(); return; }
+  const open = t.closest('[data-open]');
+  if (open && S.variant==='G') return openDrawer({type:'view', id:+open.dataset.open});
+  if (t.closest('[data-reset]') && S.variant==='G'){ closeDrawer(); toast('Demo reset to the seed data'); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S.drawer) closeDrawer();
+  if (e.key === 'Enter' && e.target.dataset && e.target.dataset.open) e.target.click();
+});
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'newf') return;
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const d = {id: Math.max(...S.items.map(x=>x.id))+1, status:'active',
+    title:f.get('title').trim(), dec:f.get('dec').trim(), why:f.get('why').trim(),
+    date:f.get('date'), owner:f.get('owner').trim(), area:f.get('area')};
+  S.items.push(d); S.items.sort((a,b)=>b.date.localeCompare(a.date));
+  closeDrawer(); render();
+  toast(`Added “${d.title}”`);
+});
+if (S.variant === 'G') render();
+</script>
+<script>
+const filtersOn = () => S.status !== 'all' || S.area !== 'all' || S.q.trim() !== '';
+function clearFilters(){ S.status='all'; S.area='all'; S.q=''; render(); }
+const today = () => new Date().toISOString().slice(0,10);
+
+function formHtml(d){
+  const v = k => d ? esc(d[k]) : '';
+  return `
+    <form id="decf" data-mode="${d?'edit':'create'}">
+    <div class="bd">
+      <label>Title</label><input name="title" required autofocus value="${v('title')}" placeholder="One line, the way you'd say it out loud" />
+      <label>What we decided</label><textarea name="dec" required placeholder="The call itself">${v('dec')}</textarea>
+      <label>Why</label><textarea name="why" required placeholder="The reasoning, in your words. This is the part that decays.">${v('why')}</textarea>
+      <div class="row2">
+        <div><label>Decided on</label><input name="date" type="date" required value="${d?d.date:today()}" max="${today()}" /></div>
+        <div><label>Owner</label><input name="owner" required value="${v('owner')}" placeholder="First name" /></div>
+      </div>
+      <label>Area</label><select name="area" required>${AREAS.map(a=>`<option ${d&&d.area===a?'selected':''}>${a}</option>`).join('')}</select>
+    </div>
+    <div class="ft">
+      <button type="button" class="ghost" data-${d?'back':'close'}>Cancel</button>
+      <button class="btn" type="submit">${d?'Save':'Add decision'}</button>
+    </div>
+    </form>`;
+}
+
+function renderDrawer(){
+  const el = document.getElementById('dr'); if (!S.drawer) return;
+  const t = S.drawer.type;
+  if (t === 'view'){
+    const d = S.items.find(x=>x.id===S.drawer.id); if (!d) return closeDrawer();
+    const f = fmt(d.date);
+    el.innerHTML = `
+      <div class="hd"><span class="ttl">Decision</span>
+        <span class="acts"><button class="edit" data-edit>Edit</button><button class="x" data-close aria-label="Close">&times;</button></span></div>
+      <div class="bd">
+        <h2>${esc(d.title)}</h2>
+        <dl>
+          <dt>Decided</dt><dd>${esc(d.dec)}</dd>
+          <dt>Because</dt><dd class="why">${esc(d.why)}</dd>
+          <dt>On</dt><dd>${f.d} ${f.y}</dd>
+          <dt>Owner</dt><dd>${d.owner}</dd>
+          <dt>Area</dt><dd>${d.area}</dd>
+        </dl>
+        <div class="sec">
+          <h4>Standing</h4>
+          <span class="seg">${['active','superseded','reversed'].map(s=>`<button data-st="${s}" aria-pressed="${d.status===s}">${cap(s)}</button>`).join('')}</span>
+          <p class="hint">${d.status==='active' ? 'Mark it superseded if a later decision replaced it, or reversed if the team went back on it.' : 'Marking it active again puts it back in force.'}</p>
+        </div>
+      </div>`;
+  } else if (t === 'edit'){
+    const d = S.items.find(x=>x.id===S.drawer.id); if (!d) return closeDrawer();
+    el.innerHTML = `<div class="hd"><span class="ttl">Edit decision</span><button class="x" data-close aria-label="Close">&times;</button></div>${formHtml(d)}`;
+  } else {
+    el.innerHTML = `<div class="hd"><span class="ttl">New decision</span><button class="x" data-close aria-label="Close">&times;</button></div>${formHtml(null)}`;
+  }
+  el.scrollTop = 0;
+}
+
+V.G = function(){
+  const list = visible(), c = counts();
+  const sb = (v,l) => `<button data-status="${v}" aria-pressed="${S.status===v}"><span>${l}</span><span>${c[v]}</span></button>`;
+  const row = d => { const f=fmt(d.date); return `
+    <div class="li ${past(d)?'is-past':''}" data-open="${d.id}" role="button" tabindex="0">
+      <div>
+        <h3><span class="dot ${d.status}"></span>${esc(d.title)}</h3>
+        <p class="dec">${esc(d.dec)}</p>
+        <p class="why">${esc(d.why)}</p>
+      </div>
+      <div class="side"><b>${f.d} ${f.y}</b>${d.owner}<br>${d.area}<span class="stw ${d.status}">${d.status}</span></div>
+    </div>`; };
+  return `<div class="v-g">
+    <div class="appbar"><div class="wrap">
+      <span class="mark">Decision Log</span>
+      <span class="nav"><button class="ghost" data-reset>Reset demo</button><a class="cta" href="#log">Try the demo</a></span>
+    </div></div>
+    <header class="hero"><div class="wrap"><h1>${HERO.h}</h1><p>${HERO.p}</p></div></header>
+    <div class="frame" id="log"><div class="box">
+      <div class="gtop">
+        <input data-q value="${esc(S.q)}" placeholder="Search decisions" />
+        ${filtersOn() ? '<button class="clear" data-clear>Clear filters</button>' : ''}
+        <span class="sp"></span>
+        <button class="new" data-new>New decision</button>
+      </div>
+      <div class="gbody">
+        <aside class="gside">
+          <div class="grp"><h4>Status</h4>${sb('all','All')}${sb('active','Active')}${sb('superseded','Superseded')}${sb('reversed','Reversed')}</div>
+          <div class="grp"><h4>Area</h4>
+            <button data-area="all" aria-pressed="${S.area==='all'}"><span>Every area</span></button>
+            ${AREAS.map(a=>`<button data-area="${a}" aria-pressed="${S.area===a}"><span>${a}</span><span>${S.items.filter(d=>d.area===a).length}</span></button>`).join('')}
+          </div>
+        </aside>
+        <main>${byYear(list, row) || `<p class="empty" style="padding:40px 20px">Nothing matches that.</p>`}</main>
+      </div>
+    </div></div>
+  </div>`;
+};
+
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t.closest('[data-clear]')) return clearFilters();
+  if (t.closest('[data-edit]') && S.drawer) { S.drawer = {type:'edit', id:S.drawer.id}; return renderDrawer(); }
+  if (t.closest('[data-back]') && S.drawer) { S.drawer = {type:'view', id:S.drawer.id}; return renderDrawer(); }
+});
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'decf') return;
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const vals = {title:f.get('title').trim(), dec:f.get('dec').trim(), why:f.get('why').trim(),
+    date:f.get('date'), owner:f.get('owner').trim(), area:f.get('area')};
+  if (e.target.dataset.mode === 'edit'){
+    const d = S.items.find(x=>x.id===S.drawer.id); Object.assign(d, vals);
+    S.items.sort((a,b)=>b.date.localeCompare(a.date));
+    S.drawer = {type:'view', id:d.id}; render(); renderDrawer();
+    return toast('Saved');
+  }
+  const d = {id: Math.max(...S.items.map(x=>x.id))+1, status:'active', ...vals};
+  S.items.push(d); S.items.sort((a,b)=>b.date.localeCompare(a.date));
+  closeDrawer(); render();
+  toast(`Added “${d.title}”`);
+});
+if (S.variant === 'G') render();
+</script>
+</body>
+
+
+
+</html>
