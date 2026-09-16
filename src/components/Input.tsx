@@ -15,7 +15,10 @@ export const controlStyles = stylex.create({
     fontFamily: type.sans,
     fontSize: type.body,
     color: colors.ink,
-    outline: { default: null, ":focus": "none" },
+    outlineColor: colors.accent,
+    outlineStyle: { default: "none", ":focus-visible": "solid" },
+    outlineWidth: "2px",
+    outlineOffset: "1px",
   },
   invalid: {
     borderColor: colors.reversed,

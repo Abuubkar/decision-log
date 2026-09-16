@@ -16,6 +16,9 @@ const styles = stylex.create({
     cursor: "pointer",
     paddingBlock: space.sm,
     paddingInline: space.base,
+    outlineColor: colors.accent,
+    outlineStyle: { default: "none", ":focus-visible": "solid" },
+    outlineWidth: "2px",
     outlineOffset: "2px",
   },
   primary: {
