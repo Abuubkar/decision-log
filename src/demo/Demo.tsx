@@ -5,7 +5,7 @@ import { colors } from "../tokens.stylex";
 import { AppBar } from "./AppBar";
 import { DecisionDrawer } from "./DecisionDrawer";
 import { Log } from "./Log";
-import { useLog } from "./useLog";
+import { useLog } from "./state";
 
 const styles = stylex.create({
   page: {
