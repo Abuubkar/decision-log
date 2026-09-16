@@ -1,15 +1,14 @@
 export const HERO = {
   headline: "Six months from now, someone will ask why.",
   support:
-    "Decision Log records what your team decided, who decided it, and the reasoning behind it. Months later you open the log and read that reasoning in the words of the person who made the call.",
+    "Decision Log keeps what your team decided, who decided it, and the reasoning, in the words of the person who made the call. The decision shown here is one of eleven in the demo.",
 };
 
 export const PROBLEM = {
-  heading: "Most of what your team decides lives in a thread nobody can find.",
+  heading: "The reasoning is the part that goes missing.",
   paragraphs: [
-    "A call gets made on a Tuesday afternoon. Four people agree, someone ships it, and the reasoning stays where it was argued. Nobody writes it down, because on Tuesday afternoon everybody already knows.",
-    "A year later the person who made the call has moved on, or the constraint that forced their hand has gone away, and the decision looks arbitrary. So someone reopens it, and the team spends an afternoon rebuilding an argument it already had and already won.",
-    "Writing the reasoning down takes two minutes on the day you decide, while it is still in your head. It holds for years.",
+    "A call gets made on a Tuesday afternoon. Four people agree, someone ships it, and the reasoning stays where it was argued. A year later the person who made it has moved on, or the constraint that forced their hand has gone, and the decision looks arbitrary. So someone reopens it, and the team spends an afternoon rebuilding an argument it already won.",
+    "Writing it down takes two minutes on the day, while it is still in your head. The entry above took Marcus about that long. It held for four months, and the log says when it stopped.",
   ],
 };
 
@@ -30,28 +29,6 @@ export const QUESTIONS = [
     term: "Whether it still holds",
     definition:
       "Active, superseded or reversed. A decision that stopped holding keeps its place in the log and says so.",
-  },
-];
-
-export const PROMISES = [
-  {
-    term: "Alternatives considered",
-    definition:
-      "Record what you turned down alongside what you chose, so the next person can see the shape of the decision rather than its outcome.",
-  },
-  {
-    term: "Capture from Slack",
-    definition: "React to a message and the decision lands in the log with the thread attached.",
-  },
-  {
-    term: "Markdown export",
-    definition:
-      "Every decision writes out as a file, so your handbook and your onboarding docs stay true to what the team actually settled.",
-  },
-  {
-    term: "Read a teammate",
-    definition:
-      "Filter the log by one person and read how they think, before you hand them the next call.",
   },
 ];
 

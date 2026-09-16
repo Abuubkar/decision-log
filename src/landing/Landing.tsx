@@ -1,15 +1,17 @@
 import { Box } from "../components/Box";
 import { styles } from "./landing.styles";
-import { Closing, Footer, Hero, ProductShot, Problem, Promises, Questions } from "./sections";
+import { Closing, Footer, Hero, ProductShot, Problem, Questions } from "./sections";
 
 export function Landing() {
   return (
     <Box style={styles.page}>
       <Hero />
       <Problem />
-      <ProductShot />
+      {/* The hero's second action points here. */}
+      <Box id="log">
+        <ProductShot />
+      </Box>
       <Questions />
-      <Promises />
       <Closing />
       <Footer />
     </Box>

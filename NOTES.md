@@ -31,8 +31,15 @@ recorded, and the detail drawer shows them newest first. Undo takes its own
 entry back out rather than writing a second one in the opposite direction,
 because undo should mean it never happened.
 
-**No fabricated social proof.** The brief allows over-promising, so the landing
-page promises features that do not exist. It does not invent customer logos,
+**The landing page shows the product instead of describing it.** The headline
+sits beside a real entry from the log, rendered as live HTML rather than a
+picture: a decision the team made in April and replaced in August, with its
+history under it. You can select the text.
+
+**No fabricated social proof, and in the end no over-promising either.** The
+brief allows inventing features for a marketing page, and an earlier version
+did. I cut that section. The page is more convincing with one true thing on it
+than with four that are not yet built, and nothing here invents customer logos,
 testimonials or usage numbers, because those are claims about other people.
 
 ## Left out
@@ -50,8 +57,8 @@ showed this gap clearly: reading "superseded" and having no way to reach the
 replacement feels unfinished. It needs a relation in the domain model and a
 picker in the form, and I chose the seed data instead.
 
-**Alternatives considered.** Promised on the landing page, absent from the app.
-It is the field that turns the form into homework.
+**Alternatives considered.** It is the field that turns the form into homework,
+so the app does not have it and the landing page no longer claims it does.
 
 **Tests.** No test harness anywhere. The type checker and the linter run on
 every commit and in CI, which is the safety net this size of project earns.
