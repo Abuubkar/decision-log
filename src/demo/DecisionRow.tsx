@@ -21,6 +21,9 @@ const styles = stylex.create({
     paddingBlock: space.base,
     paddingInline: { default: space.lg, "@media (max-width: 780px)": space.base },
     cursor: "pointer",
+    outlineColor: colors.accent,
+    outlineStyle: { default: "none", ":focus-visible": "solid" },
+    outlineWidth: "2px",
     outlineOffset: "-2px",
   },
   title: {

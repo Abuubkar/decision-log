@@ -38,6 +38,10 @@ const styles = stylex.create({
     fontSize: "16px",
     fontWeight: 500,
     textDecorationLine: "none",
+    outlineColor: colors.accent,
+    outlineStyle: { default: "none", ":focus-visible": "solid" },
+    outlineWidth: "2px",
+    outlineOffset: "3px",
   },
   section: {
     paddingBlock: { default: "88px", "@media (max-width: 780px)": space.xxl },
