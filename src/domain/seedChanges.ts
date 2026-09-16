@@ -10,7 +10,20 @@ export const SEED_CHANGES: Change[] = [
   { id: "h2", decisionId: "d2", kind: "created", at: "2024-05-02", by: "Marcus" },
   { id: "h3", decisionId: "d3", kind: "created", at: "2024-06-27", by: "Tom" },
   { id: "h4", decisionId: "d4", kind: "created", at: "2024-09-11", by: "Priya" },
-  { id: "h5", decisionId: "d4", kind: "edited", at: "2024-09-13", by: "Priya", fields: ["Why"] },
+  {
+    id: "h5",
+    decisionId: "d4",
+    kind: "edited",
+    at: "2024-09-13",
+    by: "Priya",
+    fields: [
+      {
+        field: "Why",
+        from: "They wanted SSO and a security review before signing. Too much for a forty-vehicle pilot.",
+        to: "They wanted SSO, an audit log, a named account manager and a security review before signing. All of it reasonable for them. It would have made us an enterprise company eighteen months before we had the people, and the pilot fee would not have covered the first requirement.",
+      },
+    ],
+  },
   { id: "h6", decisionId: "d5", kind: "created", at: "2024-11-05", by: "Tom" },
   { id: "h7", decisionId: "d6", kind: "created", at: "2025-01-22", by: "Marcus" },
   { id: "h8", decisionId: "d7", kind: "created", at: "2025-02-13", by: "Naz" },
@@ -50,7 +63,18 @@ export const SEED_CHANGES: Change[] = [
     kind: "edited",
     at: "2025-11-03",
     by: "Naz",
-    fields: ["What we decided", "Why"],
+    fields: [
+      {
+        field: "What we decided",
+        from: "The driver app becomes native Android.",
+        to: "The driver app becomes native Android. iOS waits until someone asks for it.",
+      },
+      {
+        field: "Why",
+        from: "Offline route sync kept breaking on older Android handsets.",
+        to: "Offline route sync broke worst on the handsets our drivers actually carry, which are four-year-old budget Androids. Seven of our forty depots issue phones at all. Everyone else uses whatever is in their pocket.",
+      },
+    ],
   },
   { id: "h16", decisionId: "d11", kind: "created", at: "2026-02-09", by: "Priya" },
   {
@@ -59,6 +83,6 @@ export const SEED_CHANGES: Change[] = [
     kind: "edited",
     at: "2026-02-20",
     by: "Marcus",
-    fields: ["Title"],
+    fields: [{ field: "Title", from: "Flat pricing", to: "Flat monthly pricing by depot size" }],
   },
 ];

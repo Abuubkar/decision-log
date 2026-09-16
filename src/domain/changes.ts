@@ -1,6 +1,10 @@
+import { formatDecidedOn } from "./decisions";
 import type { Decision, Status } from "./types";
 
 export type ChangeKind = "created" | "edited" | "status";
+
+/** One field that moved, with both sides already formatted for reading. */
+export type FieldChange = { field: string; from: string; to: string };
 
 export type Change = {
   id: string;
@@ -9,8 +13,8 @@ export type Change = {
   /** ISO date. */
   at: string;
   by: string;
-  /** Edits only: the fields that actually moved. */
-  fields?: string[];
+  /** Edits only: the fields that actually moved, and what they moved between. */
+  fields?: FieldChange[];
   /** Status changes only. */
   from?: Status;
   to?: Status;
@@ -31,11 +35,18 @@ const FIELD_LABELS: Record<string, string> = {
 
 const TRACKED = Object.keys(FIELD_LABELS) as (keyof Decision)[];
 
+/** A date reads as a date. Everything else is already a string. */
+function valueOf(field: keyof Decision, decision: Decision) {
+  return field === "decidedOn" ? formatDecidedOn(decision.decidedOn) : String(decision[field]);
+}
+
 /** Which fields moved between two versions of a decision. Empty means nothing did. */
-export function changedFields(before: Decision, after: Decision) {
-  return TRACKED.filter((field) => before[field] !== after[field]).map(
-    (field) => FIELD_LABELS[field]!,
-  );
+export function diffFields(before: Decision, after: Decision): FieldChange[] {
+  return TRACKED.filter((field) => before[field] !== after[field]).map((field) => ({
+    field: FIELD_LABELS[field]!,
+    from: valueOf(field, before),
+    to: valueOf(field, after),
+  }));
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -44,7 +55,7 @@ export function created(decisionId: string, by = YOU): Change {
   return { id: crypto.randomUUID(), decisionId, kind: "created", at: today(), by };
 }
 
-export function edited(decisionId: string, fields: string[], by = YOU): Change {
+export function edited(decisionId: string, fields: FieldChange[], by = YOU): Change {
   return { id: crypto.randomUUID(), decisionId, kind: "edited", at: today(), by, fields };
 }
 
@@ -66,14 +77,28 @@ export function historyFor(changes: Change[], decisionId: string) {
 
 const capitalise = (word: string) => word[0]!.toUpperCase() + word.slice(1);
 
-/** A label and the move it describes, or just a label when there is no move. */
-export function readChange(change: Change): { label: string; detail?: string } {
-  if (change.kind === "created") return { label: "Created" };
+export type HistoryRow = { key: string; label: string; from?: string; to?: string };
+
+/**
+ * One row per field that moved, so an edit reads the same way a status change
+ * does. A save that touched two fields produces two rows under one date.
+ */
+export function historyRows(change: Change): HistoryRow[] {
+  if (change.kind === "created") return [{ key: change.id, label: "Created" }];
   if (change.kind === "status") {
-    return {
-      label: "Status",
-      detail: `${capitalise(change.from ?? "")} → ${capitalise(change.to ?? "")}`,
-    };
+    return [
+      {
+        key: change.id,
+        label: "Status",
+        from: capitalise(change.from ?? ""),
+        to: capitalise(change.to ?? ""),
+      },
+    ];
   }
-  return { label: "Edited", detail: (change.fields ?? []).join(", ") };
+  return (change.fields ?? []).map((moved, index) => ({
+    key: `${change.id}-${index}`,
+    label: moved.field,
+    from: moved.from,
+    to: moved.to,
+  }));
 }
