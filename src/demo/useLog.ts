@@ -6,6 +6,9 @@ import type { Area, Decision, Status } from "../domain/types";
 export type StatusFilter = Status | "all";
 export type AreaFilter = Area | "all";
 
+/** What the drawer is showing, if anything. */
+export type DrawerState = { mode: "view" | "edit"; id: string } | { mode: "create" } | null;
+
 /**
  * Everything the log holds. State lives in memory on purpose: a refresh puts
  * the seed data back, which is what Reset demo says out loud.
@@ -15,7 +18,7 @@ export function useLog() {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [area, setArea] = useState<AreaFilter>("all");
   const [query, setQuery] = useState("");
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [drawer, setDrawer] = useState<DrawerState>(null);
 
   const filtered = useMemo(
     () =>
@@ -50,7 +53,7 @@ export function useLog() {
 
   const resetDemo = useCallback(() => {
     setDecisions(SEED);
-    setOpenId(null);
+    setDrawer(null);
     setStatus("all");
     setArea("all");
     setQuery("");
@@ -71,6 +74,7 @@ export function useLog() {
     });
   }, []);
 
+  const openId = drawer && "id" in drawer ? drawer.id : null;
   const open = openId ? (decisions.find((decision) => decision.id === openId) ?? null) : null;
 
   return {
@@ -83,6 +87,7 @@ export function useLog() {
     query,
     filtersApplied,
     open,
+    drawer,
     setStatus,
     setArea,
     setQuery,
@@ -90,7 +95,9 @@ export function useLog() {
     resetDemo,
     changeStatus,
     save,
-    openDecision: setOpenId,
-    closeDrawer: useCallback(() => setOpenId(null), []),
+    view: useCallback((id: string) => setDrawer({ mode: "view", id }), []),
+    edit: useCallback((id: string) => setDrawer({ mode: "edit", id }), []),
+    create: useCallback(() => setDrawer({ mode: "create" }), []),
+    closeDrawer: useCallback(() => setDrawer(null), []),
   };
 }

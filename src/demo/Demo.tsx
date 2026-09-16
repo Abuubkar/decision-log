@@ -28,9 +28,13 @@ function App() {
       />
       <Log log={log} />
       <DecisionDrawer
+        drawer={log.drawer}
         decision={log.open}
         onClose={log.closeDrawer}
+        onEdit={log.edit}
+        onView={log.view}
         onChangeStatus={log.changeStatus}
+        onSave={log.save}
       />
     </Box>
   );
