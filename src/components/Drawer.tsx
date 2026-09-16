@@ -58,6 +58,11 @@ const styles = stylex.create({
 
 type DrawerProps = {
   open: boolean;
+  /**
+   * Changes when the drawer swaps what it is showing, so the first field of a
+   * form gets focus even though the drawer never closed.
+   */
+  focusKey?: string;
   onClose: () => void;
   /** Rendered in the header, next to the close control. */
   heading: ReactNode;
@@ -65,7 +70,7 @@ type DrawerProps = {
   footer?: ReactNode;
 };
 
-export function Drawer({ open, onClose, heading, children, footer }: DrawerProps) {
+export function Drawer({ open, focusKey, onClose, heading, children, footer }: DrawerProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -73,7 +78,10 @@ export function Drawer({ open, onClose, heading, children, footer }: DrawerProps
     if (!el) return;
     if (open && !el.open) el.showModal();
     if (!open && el.open) el.close();
-  }, [open]);
+    // showModal lands on the first focusable element, which is the close button
+    // in the header. A form would rather have its first field.
+    if (open) el.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+  }, [open, focusKey]);
 
   // A click that lands on the dialog element itself landed on the backdrop.
   function onBackdrop(event: MouseEvent<HTMLDialogElement>) {
