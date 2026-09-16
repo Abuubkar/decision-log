@@ -12,6 +12,11 @@ It is free for individuals and open source projects, which covers this repo.
 the commit hook lives in `.vite-hooks/pre-commit` driven by a `staged` block in
 that same config. Five dev dependencies disappear.
 
+Both risks are now closed. The scaffolding pull request builds StyleX through
+`@stylexjs/unplugin` on Vite+ and the generated classes land in the CSS asset,
+and GitHub Actions runs `vp check` and `vp build` without asking for a licence.
+The fallback below stays on the record for anyone who hits either later.
+
 Two things stayed unverified when we chose this. StyleX compiles through
 `@stylexjs/unplugin`, and nothing we found confirms that combination works on
 Vite+'s Rolldown-based build. Vite+'s docs also do not say whether CI needs a
