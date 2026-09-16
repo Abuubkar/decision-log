@@ -31,3 +31,111 @@ current reset button feels like i will reset search and filters only.
 to avoid confusion lets rename it to clear filters.
 and add reset demo button on top nav bar
 ```
+
+## Prompt 5
+
+```
+Please start on issues by issues and keep making PRs. 
+No need to notify me in between, I'll myself check the github prs, will merge those at last after reviewing.
+See you at the end. Make sure not to hallucinate.
+```
+
+## Prompt 6
+
+```
+Changes:
+* few changes we are going to make is that let's show the toast in the bottom right, Please also make the undo in the toast outlined pill currently the colors and background are off
+* drawer head is changing height when i click edit button fix it
+* update close button to a more reasonable shape.
+* add reasonable max-length to text boxes in form.
+One more thing regarding folder structure for components. Please don't bloat everything inside single Component file. For example: in case of Toast/Toast.tsx it should be divided into:
+```
+    Toast/
+        index.ts
+        Toast.tsx
+        toast.styles.ts
+        toast.hooks.ts
+        toast.types.ts
+        ToastProvider.tsx
+        ToastContext.ts
+```
+same for @src/demo , all files are just scrambled over there.
+Show me new project folder structure before working on it
+decide your self whether to create new pr for it or add it in polish pr. also see if needed to create issue for this
+```
+
+## Prompt 7
+
+```
+Updates:
+* in #18 keep the count text always visible. so ui doesn't shifts
+* every field element like input, date has both border and outline which shows double border effect. we only need one visible border.
+* "Why" and "Owner field is missing max length limit and count"
+```
+
+## Prompt 8
+
+```
+keep it as new pr, thats fine.
+
+Let work on new feature i want to you to work on is "Change history". 
+lets use /prototype for ui of this feature.
+```
+
+## Prompt 9
+
+```
+Lets go with A, 
+Question 1: Yes
+Question 2: please sure simple and easy to understand words like `created / edited / status`
+change standing to status.
+and history should show field name and transition like "Status: Active -> Reversed"
+```
+
+## Prompt 10
+
+```
+/prototype for landing page how to make it more convincing without making it look like ai generated. you can search web for suggestions.
+```
+
+## Prompt 11
+
+```
+new design proptype was made for landing page.
+in branch:
+prototype/landing-credibility
+
+lets apply the changes and make a pr for the design change
+```
+
+## Prompt 12
+
+```
+yes open the issue for variant C feed.
+
+changes for history: 
+
+* only status change is should old and after values, rest of the field is not showing it (date, text fields, dropdown)
+
+
+please also check why on refresh the font transition is happening, its making the jerk happen on reload.
+```
+
+## Prompt 13
+
+```
+please test on live https://abuubkar.github.io/decision-log/index.html
+```
+
+## Prompt 14
+
+```
+close any stale issue and remove dead code
+move landing and demo directories to pages leave rest as it is.
+do it in same pr
+```
+
+## Prompt 15
+```
+please add `@` alias for imports.
+```
