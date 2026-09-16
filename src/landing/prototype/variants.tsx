@@ -57,6 +57,35 @@ function Pairs({ items }: { items: { term: string; definition: string }[] }) {
 
 /* ---------------------------------------------------------------- A */
 
+/** Heading on the left, ruled rows on the right. Both blocks share one skeleton. */
+function Block({
+  heading,
+  items,
+}: {
+  heading: string;
+  items: { term: string; definition: string }[];
+}) {
+  return (
+    <Box style={p.aBlock}>
+      <Text as="h2" variant="title" style={p.aBlockHeading}>
+        {heading}
+      </Text>
+      <Box as="dl" style={p.aRows}>
+        {items.map((item) => (
+          <Box key={item.term} style={p.aRow}>
+            <Text as="dt" style={p.cTerm}>
+              {item.term}
+            </Text>
+            <Text as="dd" tone="muted" style={p.aRowDef}>
+              {item.definition}
+            </Text>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
 export function VariantA() {
   return (
     <Box style={p.page}>
@@ -108,20 +137,8 @@ export function VariantA() {
 
       <Box as="section" style={p.section}>
         <Box style={p.wide}>
-          <Box style={p.aTwoCol}>
-            <Box>
-              <Text as="h2" variant="title">
-                Every decision answers four questions.
-              </Text>
-              <Pairs items={QUESTIONS} />
-            </Box>
-            <Box>
-              <Text as="h2" variant="title">
-                And keeps going.
-              </Text>
-              <Pairs items={PROMISES} />
-            </Box>
-          </Box>
+          <Block heading="Every decision answers four questions." items={QUESTIONS} />
+          <Block heading="And keeps going." items={PROMISES} />
         </Box>
       </Box>
 

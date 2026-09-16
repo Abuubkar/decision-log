@@ -84,6 +84,29 @@ export const p = stylex.create({
     marginTop: space.xl,
   },
 
+  aBlock: {
+    display: "grid",
+    gridTemplateColumns: { default: "minmax(0, 2fr) minmax(0, 3fr)", [narrow]: "1fr" },
+    gap: { default: "64px", [narrow]: space.lg },
+    alignItems: "start",
+    paddingBlock: { default: space.xl, [narrow]: space.lg },
+    borderTopWidth: { default: 0, ":not(:first-child)": "1px" },
+    borderTopStyle: "solid",
+    borderTopColor: colors.rule,
+  },
+  aBlockHeading: { maxWidth: "14ch" },
+  aRows: { margin: 0, display: "grid" },
+  aRow: {
+    display: "grid",
+    gridTemplateColumns: { default: "200px minmax(0, 1fr)", [narrow]: "1fr" },
+    gap: { default: space.lg, [narrow]: space.xs },
+    paddingBlock: space.base,
+    borderTopWidth: "1px",
+    borderTopStyle: "solid",
+    borderTopColor: colors.rule,
+  },
+  aRowDef: { margin: 0, maxWidth: "48ch" },
+
   /* Specimen card, used by A and B */
   card: {
     borderWidth: "1px",
