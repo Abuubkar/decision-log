@@ -14,6 +14,11 @@ _Avoid_: Entry, record, item, note, ADR
 The full set of Decisions belonging to a team, in one list.
 _Avoid_: Timeline, feed, history, board
 
+**Statement**:
+What was decided, in the team's own words. The Decision is the choice; the
+Statement is how they put it.
+_Avoid_: Summary, description, body, content
+
 **Rationale**:
 The reasoning behind a Decision. The part that decays fastest and the reason the
 product exists.
