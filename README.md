@@ -20,16 +20,21 @@ npm run dev
 
 ## How it is put together
 
-| Path                      | What lives there                              |
-| ------------------------- | --------------------------------------------- |
-| `index.html`, `demo.html` | The two entry points. There is no router.     |
-| `src/tokens.stylex.ts`    | Colour, type, spacing and radius tokens.      |
-| `src/components`          | Base components wrapping the native elements. |
-| `src/domain`              | Types, helpers and the seeded decisions.      |
-| `src/landing`             | The landing page, with its copy in one file.  |
-| `src/demo`                | The working log.                              |
-| `docs/adr`                | Decisions about the build itself.             |
-| `CONTEXT.md`              | The glossary this codebase writes to.         |
+| Path                      | What lives there                                               |
+| ------------------------- | -------------------------------------------------------------- |
+| `index.html`, `demo.html` | The two entry points. There is no router.                      |
+| `src/tokens.stylex.ts`    | Colour, type, spacing and radius tokens.                       |
+| `src/components`          | Base components wrapping the native elements, one folder each. |
+| `src/domain`              | Types, helpers and the seeded decisions.                       |
+| `src/landing`             | The landing page, one file per section, copy in `copy.ts`.     |
+| `src/demo`                | The working log. State lives in `demo/state`.                  |
+| `docs/adr`                | Decisions about the build itself.                              |
+| `CONTEXT.md`              | The glossary this codebase writes to.                          |
+
+Every component lives in its own folder with an `index.ts`. A `.styles.ts` exists
+where there is a `stylex.create`, a `.types.ts` where there is more than one prop
+type, and hooks or context split out where they already exist. A seventeen-line
+component does not get four files.
 
 Toolchain is [Vite+](https://viteplus.dev), which brings the build, Oxlint,
 Oxfmt and the commit hook under one `vp` command.
