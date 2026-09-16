@@ -21,7 +21,7 @@ export type Change = {
 };
 
 /** Nobody is signed in, so a change you make says so rather than borrowing a name. */
-export const YOU = "You";
+const YOU = "You";
 
 /** The words the form uses, so history and form agree. */
 const FIELD_LABELS: Record<string, string> = {
