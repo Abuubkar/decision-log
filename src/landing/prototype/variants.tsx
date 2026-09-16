@@ -138,7 +138,6 @@ export function VariantA() {
       <Box as="section" style={p.section}>
         <Box style={p.wide}>
           <Block heading="Every decision answers four questions." items={QUESTIONS} />
-          <Block heading="And keeps going." items={PROMISES} />
         </Box>
       </Box>
 
