@@ -30,6 +30,9 @@ export const styles = stylex.create({
     margin: 0,
     marginTop: space.xs,
     marginLeft: "auto",
+    // Never squeezed by a long error message sharing the row.
+    flexShrink: 0,
+    whiteSpace: "nowrap",
     fontFamily: type.sans,
     fontSize: type.small,
     fontVariantNumeric: "tabular-nums",

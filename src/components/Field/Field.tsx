@@ -4,9 +4,6 @@ import type { ReactNode } from "react";
 import { styles } from "./field.styles";
 import type { FieldProps } from "./field.types";
 
-/** The counter stays out of the way until the limit is close enough to matter. */
-const COUNTER_SHOWS_WITHIN = 40;
-
 /**
  * Owns the label, the control and the error message, so a form only has to
  * hand over the control. react-hook-form plugs in through the control's props.
@@ -14,7 +11,8 @@ const COUNTER_SHOWS_WITHIN = 40;
 export function Field({ label, error, count, children }: FieldProps): ReactNode {
   const id = useId();
   const errorId = `${id}-error`;
-  const showCount = count !== undefined && count.max - count.current <= COUNTER_SHOWS_WITHIN;
+  // Always rendered when a field has a cap, so nothing below it moves as you type.
+  const showCount = count !== undefined;
   return (
     <div {...stylex.props(styles.field)}>
       <label htmlFor={id} {...stylex.props(styles.label)}>
@@ -32,7 +30,7 @@ export function Field({ label, error, count, children }: FieldProps): ReactNode 
               {error}
             </p>
           )}
-          {showCount && (
+          {count && (
             <p
               {...stylex.props(styles.count, count.current >= count.max && styles.countFull)}
               aria-hidden="true"
