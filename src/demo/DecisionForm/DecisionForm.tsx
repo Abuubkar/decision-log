@@ -74,8 +74,16 @@ export function DecisionForm({ decision, onSubmit, onCancel }: DecisionFormProps
             <Input type="date" max={today()} {...register("decidedOn", RULES.decidedOn)} />
           </Field>
 
-          <Field label="Owner" error={errors.owner?.message}>
-            <Input placeholder="First name" {...register("owner", RULES.owner)} />
+          <Field
+            label="Owner"
+            error={errors.owner?.message}
+            count={{ current: watch("owner").length, max: LIMITS.owner }}
+          >
+            <Input
+              maxLength={LIMITS.owner}
+              placeholder="First name"
+              {...register("owner", RULES.owner)}
+            />
           </Field>
         </Box>
 
