@@ -58,7 +58,7 @@ export const PROMISES = [
 export const CLOSING = {
   heading: "Start with the last thing you decided.",
   support:
-    "The demo opens on two years from a team that sells route planning software to waste collection firms. Change a standing, add a decision of your own, and see how it reads.",
+    "The demo opens on two years from a team that sells route planning software to waste collection firms. Change a status, add a decision of your own, and see how it reads.",
 };
 
 export const FOOTER =

@@ -11,28 +11,29 @@ const label = (status: Status) => status[0]!.toUpperCase() + status.slice(1);
 
 type Props = {
   decision: Decision;
-  onChangeStatus: (id: string, status: Status) => void;
+  onChangeStatus: (id: string, from: Status, to: Status) => string;
+  onUndoStatus: (id: string, back: Status, changeId: string) => void;
 };
 
-/** Changing a standing confirms itself, and offers the way back. */
-export function StandingControl({ decision, onChangeStatus }: Props) {
+/** Changing a status confirms itself, and offers the way back. */
+export function StatusControl({ decision, onChangeStatus, onUndoStatus }: Props) {
   const toast = useToast();
 
   function change(next: Status) {
     if (decision.status === next) return;
     const previous = decision.status;
     const { id, title } = decision;
-    onChangeStatus(id, next);
+    const changeId = onChangeStatus(id, previous, next);
     toast(`Marked “${title}” ${next}`, {
       label: "Undo",
-      run: () => onChangeStatus(id, previous),
+      run: () => onUndoStatus(id, previous, changeId),
     });
   }
 
   return (
     <div {...stylex.props(styles.section)}>
-      <Text variant="label">Standing</Text>
-      <div {...stylex.props(styles.segment)} role="group" aria-label="Standing">
+      <Text variant="label">Status</Text>
+      <div {...stylex.props(styles.segment)} role="group" aria-label="Status">
         {STATUSES.map((status) => (
           <Button
             key={status}
