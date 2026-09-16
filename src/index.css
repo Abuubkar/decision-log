@@ -1,0 +1,12 @@
+/* StyleX appends its own layers after this file, so its rules win over the reset. */
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+  }
+}
