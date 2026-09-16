@@ -41,6 +41,11 @@ _Avoid_: Replaced, outdated, archived
 The Decision turned out to be wrong and the team went back on it.
 _Avoid_: Undone, cancelled, rejected, revoked
 
+**Change**:
+Something that happened to a Decision after it was written down. Exactly one of
+Created, Edited or Status.
+_Avoid_: Event, revision, activity, audit
+
 **Owner**:
 The person who made the call. One name, not a committee.
 _Avoid_: Author, creator, assignee, decider

@@ -34,7 +34,9 @@ function App() {
         onEdit={log.edit}
         onView={log.view}
         onChangeStatus={log.changeStatus}
+        onUndoStatus={log.undoStatus}
         onSave={log.save}
+        history={log.history}
       />
     </Box>
   );

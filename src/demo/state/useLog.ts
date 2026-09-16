@@ -1,6 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
+import { changedFields, created, edited, historyFor, statusChanged } from "../../domain/changes";
+import type { Change } from "../../domain/changes";
 import { byNewest, countByStatus, matchesQuery, withStatus } from "../../domain/decisions";
 import { SEED } from "../../domain/seed";
+import { SEED_CHANGES } from "../../domain/seedChanges";
 import type { Area, Decision, Status } from "../../domain/types";
 import type { AreaFilter, DrawerState, StatusFilter } from "./log.types";
 
@@ -10,6 +13,7 @@ import type { AreaFilter, DrawerState, StatusFilter } from "./log.types";
  */
 export function useLog() {
   const [decisions, setDecisions] = useState<Decision[]>(SEED);
+  const [changes, setChanges] = useState<Change[]>(SEED_CHANGES);
   const [status, setStatus] = useState<StatusFilter>("all");
   const [area, setArea] = useState<AreaFilter>("all");
   const [query, setQuery] = useState("");
@@ -48,26 +52,53 @@ export function useLog() {
 
   const resetDemo = useCallback(() => {
     setDecisions(SEED);
+    setChanges(SEED_CHANGES);
     setDrawer(null);
     setStatus("all");
     setArea("all");
     setQuery("");
   }, []);
 
-  const changeStatus = useCallback((id: string, next: Status) => {
+  /** Returns the change it recorded, so Undo can take it back out again. */
+  const changeStatus = useCallback((id: string, from: Status, to: Status) => {
     setDecisions((current) =>
-      current.map((decision) => (decision.id === id ? withStatus(decision, next) : decision)),
+      current.map((decision) => (decision.id === id ? withStatus(decision, to) : decision)),
     );
+    const change = statusChanged(id, from, to);
+    setChanges((current) => [...current, change]);
+    return change.id;
   }, []);
 
-  const save = useCallback((decision: Decision) => {
-    setDecisions((current) => {
-      const exists = current.some((item) => item.id === decision.id);
-      return exists
-        ? current.map((item) => (item.id === decision.id ? decision : item))
-        : [...current, decision];
-    });
+  /** Undo means it never happened, so the change comes back out of the history. */
+  const undoStatus = useCallback((id: string, back: Status, changeId: string) => {
+    setDecisions((current) =>
+      current.map((decision) => (decision.id === id ? withStatus(decision, back) : decision)),
+    );
+    setChanges((current) => current.filter((change) => change.id !== changeId));
   }, []);
+
+  // The diff is worked out here rather than inside the setDecisions updater.
+  // An updater has to be pure, and React runs it twice in development to prove
+  // it: recording the change in there wrote every edit to the history twice.
+  const save = useCallback(
+    (decision: Decision) => {
+      const before = decisions.find((item) => item.id === decision.id);
+
+      if (!before) {
+        setDecisions((current) => [...current, decision]);
+        setChanges((history) => [...history, created(decision.id)]);
+        return;
+      }
+
+      // Saving a form nobody touched should not fill the history with noise.
+      const fields = changedFields(before, decision);
+      setDecisions((current) => current.map((item) => (item.id === decision.id ? decision : item)));
+      if (fields.length > 0) {
+        setChanges((history) => [...history, edited(decision.id, fields)]);
+      }
+    },
+    [decisions],
+  );
 
   const openId = drawer && "id" in drawer ? drawer.id : null;
   const open = openId ? (decisions.find((decision) => decision.id === openId) ?? null) : null;
@@ -83,12 +114,14 @@ export function useLog() {
     filtersApplied,
     open,
     drawer,
+    history: open ? historyFor(changes, open.id) : [],
     setStatus,
     setArea,
     setQuery,
     clearFilters,
     resetDemo,
     changeStatus,
+    undoStatus,
     save,
     view: useCallback((id: string) => setDrawer({ mode: "view", id }), []),
     edit: useCallback((id: string) => setDrawer({ mode: "edit", id }), []),

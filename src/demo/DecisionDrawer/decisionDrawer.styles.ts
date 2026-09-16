@@ -68,4 +68,13 @@ export const styles = stylex.create({
     fontWeight: 500,
   },
   hint: { marginTop: space.md },
+  history: { marginTop: space.md, display: "grid", gap: space.sm },
+  event: {
+    display: "grid",
+    gridTemplateColumns: { default: "104px 1fr auto", "@media (max-width: 780px)": "1fr" },
+    gap: { default: space.md, "@media (max-width: 780px)": space.xs },
+    alignItems: "baseline",
+  },
+  when: { fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" },
+  detail: { color: colors.inkMuted },
 });
