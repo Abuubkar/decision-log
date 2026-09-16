@@ -13,14 +13,26 @@ import type { DrawerState } from "./useLog";
 
 const styles = stylex.create({
   actions: { display: "flex", alignItems: "center", gap: space.sm },
+  // Matches the close control, so the header keeps one height across modes.
+  edit: { height: "34px", paddingBlock: 0, fontSize: type.small },
   close: {
-    background: "none",
-    borderWidth: 0,
-    padding: space.xs,
-    fontSize: "22px",
-    lineHeight: 1,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "34px",
+    height: "34px",
+    padding: 0,
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: { default: "transparent", ":hover": colors.ruleStrong },
+    borderRadius: radii.md,
+    backgroundColor: { default: "transparent", ":hover": colors.paperSunk },
     color: { default: colors.inkMuted, ":hover": colors.ink },
     cursor: "pointer",
+    outlineColor: colors.accent,
+    outlineStyle: { default: "none", ":focus-visible": "solid" },
+    outlineWidth: "2px",
+    outlineOffset: "2px",
   },
   list: {
     display: "grid",
@@ -134,7 +146,9 @@ export function DecisionDrawer({
           <Text variant="label">{HEADINGS[mode]}</Text>
           <Box style={styles.actions}>
             {mode === "view" && decision && (
-              <Button onClick={() => onEdit(decision.id)}>Edit</Button>
+              <Button onClick={() => onEdit(decision.id)} style={styles.edit}>
+                Edit
+              </Button>
             )}
             <button
               type="button"
@@ -142,7 +156,14 @@ export function DecisionDrawer({
               aria-label="Close"
               {...stylex.props(styles.close)}
             >
-              &times;
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                <path
+                  d="M1 1l12 12M13 1L1 13"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
             </button>
           </Box>
         </>

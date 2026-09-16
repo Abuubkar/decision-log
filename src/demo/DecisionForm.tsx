@@ -32,6 +32,9 @@ type Values = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+/** A title that runs long stops being a title, and a rationale has an end. */
+export const LIMITS = { title: 90, statement: 240, rationale: 700 };
+
 type Props = {
   /** Absent when adding a decision rather than editing one. */
   decision?: Decision;
@@ -43,6 +46,7 @@ export function DecisionForm({ decision, onSubmit, onCancel }: Props) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<Values>({
     defaultValues: decision
@@ -60,23 +64,38 @@ export function DecisionForm({ decision, onSubmit, onCancel }: Props) {
   return (
     <Box as="form" onSubmit={handleSubmit(onSubmit)} style={styles.form}>
       <Box style={styles.fields}>
-        <Field label="Title" error={errors.title?.message}>
+        <Field
+          label="Title"
+          error={errors.title?.message}
+          count={{ current: watch("title").length, max: LIMITS.title }}
+        >
           <Input
             data-autofocus
+            maxLength={LIMITS.title}
             placeholder="One line, the way you'd say it out loud"
             {...register("title", { required: "Give it a title. One line is enough." })}
           />
         </Field>
 
-        <Field label="What we decided" error={errors.statement?.message}>
+        <Field
+          label="What we decided"
+          error={errors.statement?.message}
+          count={{ current: watch("statement").length, max: LIMITS.statement }}
+        >
           <Textarea
+            maxLength={LIMITS.statement}
             placeholder="The call itself"
             {...register("statement", { required: "Say what the team decided." })}
           />
         </Field>
 
-        <Field label="Why" error={errors.rationale?.message}>
+        <Field
+          label="Why"
+          error={errors.rationale?.message}
+          count={{ current: watch("rationale").length, max: LIMITS.rationale }}
+        >
           <Textarea
+            maxLength={LIMITS.rationale}
             placeholder="The reasoning, in your words. This is the part that decays."
             {...register("rationale", {
               required: "Say why. In six months this is the only part anyone needs.",

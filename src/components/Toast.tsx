@@ -7,7 +7,7 @@ import { radii, space, type } from "../tokens.stylex";
 const styles = stylex.create({
   toast: {
     position: "fixed",
-    top: { default: space.lg, "@media (max-width: 780px)": space.md },
+    bottom: { default: space.lg, "@media (max-width: 780px)": space.md },
     right: { default: space.lg, "@media (max-width: 780px)": space.md },
     left: { default: "auto", "@media (max-width: 780px)": space.md },
     zIndex: 50,
@@ -23,15 +23,24 @@ const styles = stylex.create({
     fontSize: type.body,
     boxShadow: "0 8px 30px rgba(0, 0, 0, 0.25)",
   },
+  // Undo is a real action, so it gets the shape of one against the dark toast.
   action: {
-    background: "none",
-    borderWidth: 0,
-    padding: 0,
-    color: "inherit",
-    fontWeight: 600,
+    backgroundColor: { default: "transparent", ":hover": "rgba(255, 255, 255, 0.14)" },
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: { default: "rgba(255, 255, 255, 0.4)", ":hover": "rgba(255, 255, 255, 0.7)" },
+    borderRadius: radii.pill,
+    paddingBlock: "4px",
+    paddingInline: space.md,
+    color: "#fff",
+    fontFamily: type.sans,
+    fontSize: type.small,
+    fontWeight: 500,
     cursor: "pointer",
-    textDecorationLine: "underline",
-    textUnderlineOffset: "3px",
+    outlineColor: "#fff",
+    outlineStyle: { default: "none", ":focus-visible": "solid" },
+    outlineWidth: "2px",
+    outlineOffset: "2px",
   },
 });
 
