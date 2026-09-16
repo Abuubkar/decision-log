@@ -26,6 +26,11 @@ company across two years, including one the team reversed and admitted they got
 wrong. Generated placeholder data is the fastest way to make a product look
 fake.
 
+**A decision keeps its history.** Created, edited and status changes all get
+recorded, and the detail drawer shows them newest first. Undo takes its own
+entry back out rather than writing a second one in the opposite direction,
+because undo should mean it never happened.
+
 **No fabricated social proof.** The brief allows over-promising, so the landing
 page promises features that do not exist. It does not invent customer logos,
 testimonials or usage numbers, because those are claims about other people.

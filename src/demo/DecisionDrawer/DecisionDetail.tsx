@@ -2,16 +2,20 @@ import * as stylex from "@stylexjs/stylex";
 import { Fragment } from "react";
 import { Text } from "../../components/Text";
 import { formatDecidedOn } from "../../domain/decisions";
+import type { Change } from "../../domain/changes";
 import type { Decision, Status } from "../../domain/types";
-import { StandingControl } from "./StandingControl";
+import { ChangeHistory } from "./ChangeHistory";
+import { StatusControl } from "./StatusControl";
 import { styles } from "./decisionDrawer.styles";
 
 type Props = {
   decision: Decision;
-  onChangeStatus: (id: string, status: Status) => void;
+  history: Change[];
+  onChangeStatus: (id: string, from: Status, to: Status) => string;
+  onUndoStatus: (id: string, back: Status, changeId: string) => void;
 };
 
-export function DecisionDetail({ decision, onChangeStatus }: Props) {
+export function DecisionDetail({ decision, history, onChangeStatus, onUndoStatus }: Props) {
   const rows = [
     { term: "Decided", value: decision.statement, muted: false },
     { term: "Because", value: decision.rationale, muted: true },
@@ -37,7 +41,12 @@ export function DecisionDetail({ decision, onChangeStatus }: Props) {
           </Fragment>
         ))}
       </dl>
-      <StandingControl decision={decision} onChangeStatus={onChangeStatus} />
+      <StatusControl
+        decision={decision}
+        onChangeStatus={onChangeStatus}
+        onUndoStatus={onUndoStatus}
+      />
+      <ChangeHistory history={history} />
     </>
   );
 }

@@ -18,7 +18,9 @@ export function DecisionDrawer({
   onEdit,
   onView,
   onChangeStatus,
+  onUndoStatus,
   onSave,
+  history,
 }: DecisionDrawerProps) {
   const toast = useToast();
   const mode = drawer?.mode ?? "view";
@@ -81,7 +83,12 @@ export function DecisionDrawer({
       )}
 
       {mode === "view" && decision && (
-        <DecisionDetail decision={decision} onChangeStatus={onChangeStatus} />
+        <DecisionDetail
+          decision={decision}
+          history={history}
+          onChangeStatus={onChangeStatus}
+          onUndoStatus={onUndoStatus}
+        />
       )}
     </Drawer>
   );
