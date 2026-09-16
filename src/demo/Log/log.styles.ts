@@ -1,6 +1,13 @@
 import * as stylex from "@stylexjs/stylex";
 import { colors, radii, space, type } from "../../tokens.stylex";
 
+/**
+ * A finger, rather than a narrow window. A touch laptop and a tablet in
+ * landscape both want the larger target while a mouse on a small window does
+ * not, so this keys off the pointer and not the viewport.
+ */
+const touch = "@media (pointer: coarse)";
+
 export const styles = stylex.create({
   frame: {
     maxWidth: "1120px",
@@ -70,7 +77,8 @@ export const styles = stylex.create({
     backgroundColor: { default: "transparent", ":hover": colors.card },
     color: colors.inkMuted,
     fontWeight: 400,
-    paddingBlock: "6px",
+    // 32px under a mouse, 44px under a finger.
+    paddingBlock: { default: "6px", [touch]: "12px" },
     paddingInline: space.sm,
   },
   chosen: {
