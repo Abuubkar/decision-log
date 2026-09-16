@@ -1,0 +1,4 @@
+# Oxfmt reads .gitignore and .prettierignore. These two files belong to the
+# submission, not to the codebase, and their wording has to stay untouched.
+PROMPTS.md
+TASK.md
