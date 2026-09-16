@@ -17,6 +17,7 @@ export const styles = stylex.create({
     paddingBlock: space.md,
     paddingInline: { default: space.lg, "@media (max-width: 780px)": space.base },
   },
+  actions: { display: "flex", alignItems: "center", gap: "8px" },
   mark: {
     fontFamily: type.serif,
     fontSize: "20px",
