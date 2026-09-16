@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { changedFields, created, edited, historyFor, statusChanged } from "../../domain/changes";
+import { created, diffFields, edited, historyFor, statusChanged } from "../../domain/changes";
 import type { Change } from "../../domain/changes";
 import { byNewest, countByStatus, matchesQuery, withStatus } from "../../domain/decisions";
 import { SEED } from "../../domain/seed";
@@ -91,7 +91,7 @@ export function useLog() {
       }
 
       // Saving a form nobody touched should not fill the history with noise.
-      const fields = changedFields(before, decision);
+      const fields = diffFields(before, decision);
       setDecisions((current) => current.map((item) => (item.id === decision.id ? decision : item)));
       if (fields.length > 0) {
         setChanges((history) => [...history, edited(decision.id, fields)]);
