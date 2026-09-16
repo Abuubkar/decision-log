@@ -8,7 +8,9 @@ export default defineConfig({
   base: "/decision-log/",
   plugins: [
     // StyleX has to run before the React plugin or Fast Refresh stops working.
-    stylex.vite({ useCSSLayers: true }),
+    // Its CSS stays unlayered so it always outranks the reset in src/index.css,
+    // whichever order the two stylesheets happen to load in.
+    stylex.vite(),
     react(),
   ],
   build: {
