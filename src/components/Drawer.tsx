@@ -33,6 +33,10 @@ const styles = stylex.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: space.md,
+    // The view header carries an Edit button and the form headers do not. Both
+    // header controls are the same height, and this floor holds the header
+    // still for any mode that has neither.
+    minHeight: "66px",
     paddingBlock: space.base,
     paddingInline: space.lg,
     borderBottomWidth: "1px",
