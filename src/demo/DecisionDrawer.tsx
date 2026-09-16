@@ -1,4 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
+import { Box } from "../components/Box";
 import { Button } from "../components/Button";
 import { Drawer } from "../components/Drawer";
 import { Text } from "../components/Text";
@@ -7,8 +8,11 @@ import { formatDecidedOn } from "../domain/decisions";
 import { STATUSES } from "../domain/types";
 import type { Decision, Status } from "../domain/types";
 import { colors, radii, space, type } from "../tokens.stylex";
+import { DecisionForm } from "./DecisionForm";
+import type { DrawerState } from "./useLog";
 
 const styles = stylex.create({
+  actions: { display: "flex", alignItems: "center", gap: space.sm },
   close: {
     background: "none",
     borderWidth: 0,
@@ -86,13 +90,28 @@ const HINTS: Record<Status, string> = {
 const label = (status: Status) => status[0]!.toUpperCase() + status.slice(1);
 
 type Props = {
+  drawer: DrawerState;
   decision: Decision | null;
   onClose: () => void;
+  onEdit: (id: string) => void;
+  onView: (id: string) => void;
   onChangeStatus: (id: string, status: Status) => void;
+  onSave: (decision: Decision) => void;
 };
 
-export function DecisionDrawer({ decision, onClose, onChangeStatus }: Props) {
+const HEADINGS = { view: "Decision", edit: "Edit decision", create: "New decision" };
+
+export function DecisionDrawer({
+  drawer,
+  decision,
+  onClose,
+  onEdit,
+  onView,
+  onChangeStatus,
+  onSave,
+}: Props) {
   const toast = useToast();
+  const mode = drawer?.mode ?? "view";
 
   function change(next: Status) {
     if (!decision || decision.status === next) return;
@@ -107,23 +126,53 @@ export function DecisionDrawer({ decision, onClose, onChangeStatus }: Props) {
 
   return (
     <Drawer
-      open={decision !== null}
+      open={drawer !== null}
+      focusKey={mode}
       onClose={onClose}
       heading={
         <>
-          <Text variant="label">Decision</Text>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            {...stylex.props(styles.close)}
-          >
-            &times;
-          </button>
+          <Text variant="label">{HEADINGS[mode]}</Text>
+          <Box style={styles.actions}>
+            {mode === "view" && decision && (
+              <Button onClick={() => onEdit(decision.id)}>Edit</Button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              {...stylex.props(styles.close)}
+            >
+              &times;
+            </button>
+          </Box>
         </>
       }
     >
-      {decision && (
+      {mode === "create" && (
+        <DecisionForm
+          onCancel={onClose}
+          onSubmit={(values) => {
+            const added = { ...values, id: crypto.randomUUID(), status: "active" as const };
+            onSave(added);
+            onClose();
+            toast(`Added “${added.title}”`);
+          }}
+        />
+      )}
+
+      {mode === "edit" && decision && (
+        <DecisionForm
+          decision={decision}
+          onCancel={() => onView(decision.id)}
+          onSubmit={(values) => {
+            onSave({ ...decision, ...values });
+            onView(decision.id);
+            toast("Saved");
+          }}
+        />
+      )}
+
+      {mode === "view" && decision && (
         <>
           <Text as="h2" variant="title" style={styles.heading}>
             {decision.title}

@@ -38,6 +38,7 @@ const styles = stylex.create({
     backgroundColor: colors.paperSunk,
   },
   search: { flex: 1, maxWidth: "340px", minWidth: "140px" },
+  spacer: { flex: 1 },
   body: {
     display: "grid",
     gridTemplateColumns: { default: "208px 1fr", "@media (max-width: 780px)": "1fr" },
@@ -116,6 +117,10 @@ export function Log({ log }: { log: ReturnType<typeof useLog> }) {
               Clear filters
             </Button>
           )}
+          <span {...stylex.props(styles.spacer)} />
+          <Button variant="primary" onClick={log.create}>
+            New decision
+          </Button>
         </Box>
 
         <Box style={styles.body}>
@@ -189,7 +194,7 @@ export function Log({ log }: { log: ReturnType<typeof useLog> }) {
                         <span {...stylex.props(styles.rule)} />
                       </Box>
                     )}
-                    <DecisionRow decision={decision} onOpen={log.openDecision} />
+                    <DecisionRow decision={decision} onOpen={log.view} />
                   </Fragment>
                 );
               })
