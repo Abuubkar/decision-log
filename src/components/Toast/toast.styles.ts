@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import { radii, space, type } from "../../tokens.stylex";
+import { radii, space, type } from "@/tokens.stylex";
 
 export const styles = stylex.create({
   toast: {

@@ -26,10 +26,13 @@ npm run dev
 | `src/tokens.stylex.ts`    | Colour, type, spacing and radius tokens.                       |
 | `src/components`          | Base components wrapping the native elements, one folder each. |
 | `src/domain`              | Types, helpers and the seeded decisions.                       |
-| `src/landing`             | The landing page, one file per section, copy in `copy.ts`.     |
-| `src/demo`                | The working log. State lives in `demo/state`.                  |
+| `src/pages/landing`       | The landing page, one file per section, copy in `copy.ts`.     |
+| `src/pages/demo`          | The working log. State lives in `demo/state`.                  |
 | `docs/adr`                | Decisions about the build itself.                              |
 | `CONTEXT.md`              | The glossary this codebase writes to.                          |
+
+Imports use `@` for `src`, so nothing counts how deep it sits. A single `../`
+stays relative, since inside a folder that reads better than an alias.
 
 Every component lives in its own folder with an `index.ts`. A `.styles.ts` exists
 where there is a `stylex.create`, a `.types.ts` where there is more than one prop

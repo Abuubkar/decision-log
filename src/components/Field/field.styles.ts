@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import { colors, space, type } from "../../tokens.stylex";
+import { colors, space, type } from "@/tokens.stylex";
 
 export const styles = stylex.create({
   field: {

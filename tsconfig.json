@@ -12,7 +12,8 @@
     "verbatimModuleSyntax": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "types": ["vite-plus/client"]
+    "types": ["vite-plus/client"],
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src", "vite.config.ts"]
 }
