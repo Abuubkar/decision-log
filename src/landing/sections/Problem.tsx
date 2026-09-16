@@ -5,7 +5,7 @@ import { styles } from "../landing.styles";
 
 export function Problem() {
   return (
-    <Box as="section" style={styles.section}>
+    <Box as="section" style={[styles.section, styles.sunk]}>
       <Box style={styles.wrap}>
         <Text as="h2" variant="title">
           {PROBLEM.heading}
