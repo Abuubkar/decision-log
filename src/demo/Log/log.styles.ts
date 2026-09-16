@@ -28,8 +28,14 @@ export const styles = stylex.create({
     borderBottomColor: colors.rule,
     backgroundColor: colors.paperSunk,
   },
-  search: { flex: 1, maxWidth: "340px", minWidth: "140px" },
-  spacer: { flex: 1 },
+  // On a phone the search takes its own row. Sharing one with the button left it
+  // pinned at its minimum, exactly one character short of its own placeholder.
+  search: {
+    flex: 1,
+    maxWidth: { default: "340px", "@media (max-width: 780px)": "none" },
+    minWidth: { default: "140px", "@media (max-width: 780px)": "100%" },
+  },
+  spacer: { flex: { default: 1, "@media (max-width: 780px)": 0 } },
   body: {
     display: "grid",
     gridTemplateColumns: { default: "208px 1fr", "@media (max-width: 780px)": "1fr" },
