@@ -1,10 +1,9 @@
+import { today } from "@/domain/decisions";
 import { AREAS } from "@/domain/types";
 import type { DecisionValues } from "./decisionForm.types";
 
 /** A title that runs long stops being a title, and a rationale has an end. */
 export const LIMITS = { title: 90, statement: 240, rationale: 700, owner: 40 };
-
-export const today = () => new Date().toISOString().slice(0, 10);
 
 /** Every message says what to do, rather than what went wrong. */
 export const RULES = {

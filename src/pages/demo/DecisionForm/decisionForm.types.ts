@@ -14,4 +14,9 @@ export type DecisionFormProps = {
   decision?: Decision;
   onSubmit: (values: DecisionValues) => void;
   onCancel: () => void;
+  /**
+   * Called as the form becomes dirty and clean again, so whatever is holding
+   * the form can refuse to throw the typing away.
+   */
+  onDirtyChange?: (dirty: boolean) => void;
 };

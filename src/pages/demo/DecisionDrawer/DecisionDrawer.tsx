@@ -1,4 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
+import { useCallback, useRef } from "react";
 import { Box } from "@/components/Box";
 import { Button } from "@/components/Button";
 import { Drawer } from "@/components/Drawer";
@@ -25,11 +26,32 @@ export function DecisionDrawer({
   const toast = useToast();
   const mode = drawer?.mode ?? "view";
 
+  // A ref rather than state: nothing renders differently because the form is
+  // dirty, and a re-render on the first keystroke would cost the field its
+  // cursor position for no reason.
+  const dirty = useRef(false);
+  const onDirtyChange = useCallback((value: boolean) => {
+    dirty.current = value;
+  }, []);
+
+  /** Nothing typed is thrown away without being asked about first. */
+  const mayClose = useCallback(
+    () =>
+      !dirty.current ||
+      window.confirm("You have not saved this decision. Close it and lose what you typed?"),
+    [],
+  );
+
+  const closeIfAllowed = useCallback(() => {
+    if (mayClose()) onClose();
+  }, [mayClose, onClose]);
+
   return (
     <Drawer
       open={drawer !== null}
       focusKey={mode}
       onClose={onClose}
+      onBeforeClose={mayClose}
       heading={
         <>
           <Text variant="label">{HEADINGS[mode]}</Text>
@@ -41,7 +63,7 @@ export function DecisionDrawer({
             )}
             <button
               type="button"
-              onClick={onClose}
+              onClick={closeIfAllowed}
               aria-label="Close"
               {...stylex.props(styles.close)}
             >
@@ -60,7 +82,8 @@ export function DecisionDrawer({
     >
       {mode === "create" && (
         <DecisionForm
-          onCancel={onClose}
+          onDirtyChange={onDirtyChange}
+          onCancel={closeIfAllowed}
           onSubmit={(values) => {
             const added = { ...values, id: crypto.randomUUID(), status: "active" as const };
             onSave(added);
@@ -73,6 +96,7 @@ export function DecisionDrawer({
       {mode === "edit" && decision && (
         <DecisionForm
           decision={decision}
+          onDirtyChange={onDirtyChange}
           onCancel={() => onView(decision.id)}
           onSubmit={(values) => {
             onSave({ ...decision, ...values });
