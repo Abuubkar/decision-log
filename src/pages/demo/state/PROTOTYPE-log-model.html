@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prototype — Decision Log state model</title>
+<style>
+  :root {
+    --paper: #fbf9f5;
+    --paper-sunk: #f4f0e7;
+    --card: #fffdfa;
+    --ink: #1b1815;
+    --ink-muted: #6a635a;
+    --ink-faint: #9b9389;
+    --rule: #e4ddd1;
+    --rule-strong: #cfc6b6;
+    --accent: #34506b;
+    --active: #3e6b4f;
+    --superseded: #8a6d3b;
+    --reversed: #8c4a45;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 24px 96px; }
+  h1 { font-family: var(--serif); font-size: 38px; line-height: 1.1; margin: 0 0 12px; font-weight: 600; }
+  h2 { font-family: var(--serif); font-size: 21px; margin: 0 0 10px; font-weight: 600; }
+  h3 { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint);
+       margin: 0 0 8px; font-weight: 600; }
+  p { margin: 0 0 12px; }
+  .lede { color: var(--ink-muted); max-width: 70ch; }
+  .question {
+    border-left: 3px solid var(--accent); background: var(--paper-sunk);
+    padding: 16px 20px; margin: 24px 0 32px; max-width: 80ch;
+  }
+  .question p:last-child { margin-bottom: 0; }
+  .cols { display: grid; grid-template-columns: minmax(0,1fr) 400px; gap: 28px; align-items: start; }
+  @media (max-width: 940px) { .cols { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--rule); padding: 20px; margin-bottom: 20px; }
+  .panel.sticky { position: sticky; top: 20px; }
+  button {
+    font: inherit; font-size: 13px; color: var(--ink); background: transparent;
+    border: 1px solid var(--rule-strong); padding: 6px 11px; cursor: pointer;
+    border-radius: 3px;
+  }
+  button:hover:not(:disabled) { border-color: var(--ink); }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+  button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  button.danger { color: var(--reversed); border-color: #ddc4c1; }
+  button.danger:hover:not(:disabled) { border-color: var(--reversed); }
+  button.step { display: block; width: 100%; text-align: left; margin-bottom: 6px; }
+  button.step.done { opacity: 0.4; text-decoration: line-through; }
+  button.step.next { border-color: var(--accent); box-shadow: inset 2px 0 0 var(--accent); }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .row:last-child { margin-bottom: 0; }
+  input[type=text] {
+    font: inherit; font-size: 13px; padding: 6px 9px; border: 1px solid var(--rule-strong);
+    border-radius: 3px; background: var(--paper); width: 160px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+       color: var(--ink-faint); font-weight: 600; padding: 0 8px 6px 0; }
+  td { padding: 5px 8px 5px 0; border-top: 1px solid var(--rule); vertical-align: top; }
+  tr.gone td { opacity: 0.45; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
+  .dot.active { background: var(--active); }
+  .dot.superseded { background: var(--superseded); }
+  .dot.reversed { background: var(--reversed); }
+  code, .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+  .url { word-break: break-all; color: var(--accent); background: var(--paper-sunk);
+         padding: 8px 10px; display: block; }
+  .facet { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+  .facet .n { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .facet.chosen { font-weight: 600; }
+  .facet.empty .n { color: var(--reversed); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 6px; border: 1px solid var(--rule-strong);
+         border-radius: 10px; color: var(--ink-muted); margin-left: 6px; }
+  .tag.derived { border-color: #c3d0dd; color: var(--accent); }
+  .note { font-size: 13px; color: var(--ink-muted); margin-top: 10px; }
+  .flash { background: #eef3e9; border-left: 3px solid var(--active); padding: 10px 12px;
+           font-size: 13px; margin-bottom: 16px; }
+  .flash.warn { background: #f7efe4; border-left-color: var(--superseded); }
+  .flash.bad { background: #f8eceb; border-left-color: var(--reversed); }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); margin-bottom: 16px; flex-wrap: wrap; }
+  .tabs button { border: none; border-bottom: 2px solid transparent; border-radius: 0;
+                 padding: 8px 12px; color: var(--ink-muted); }
+  .tabs button[aria-selected=true] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
+  .scenario p { font-size: 14px; color: var(--ink-muted); max-width: 62ch; }
+  .watch { font-size: 13px; background: var(--paper-sunk); padding: 10px 12px; margin: 12px 0 16px; }
+  .history { font-size: 12.5px; color: var(--ink-muted); }
+  .history div { padding: 2px 0; }
+  .orphan { color: var(--reversed); font-weight: 600; }
+  hr { border: none; border-top: 1px solid var(--rule); margin: 28px 0; }
+  .throwaway { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+               color: var(--reversed); font-weight: 600; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="throwaway">Throwaway prototype — not production code</p>
+  <h1>Does the Decision Log model survive delete, persistence and custom Areas?</h1>
+  <p class="lede">
+    Press the buttons. Watch the panel on the right. The point is to find the moment where
+    you say &ldquo;wait, that shouldn&rsquo;t be possible.&rdquo;
+  </p>
+
+  <div class="question">
+    <p><strong>The question.</strong> The Log today holds a fixed set of four Areas, never deletes a
+    Decision, and keeps nothing after a refresh. We want to add per-machine persistence, delete
+    (one Decision and all of them), and Areas the user can add. Three things collide:</p>
+    <p>Persistence is not here to make the demo smoother. It is here so someone can keep a Log that is
+       actually worth something to them. That raises the stakes on everything else:</p>
+    <p>1. A Change points at a Decision by id. Delete the Decision and that Change dangles.<br />
+       2. &ldquo;Reset demo&rdquo; means &ldquo;refresh and the seed comes back&rdquo;. Once a Log is
+          someone&rsquo;s real work, a refresh must never do that.<br />
+       3. If a user removes an Area that Decisions still sit in, what Area are those Decisions in?</p>
+    <p>This prototype proposes three answers — <strong>snapshot Undo</strong>, <strong>a saved Log
+       that outranks the seed</strong>, and <strong>Areas derived from the Decisions themselves</strong>
+       — and lets you try to break them.</p>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="panel">
+        <h2>Free play</h2>
+        <h3>The Log</h3>
+        <div class="row">
+          <button data-act="create">Record a Decision</button>
+          <button data-act="edit">Edit the open Decision</button>
+          <button data-act="supersede">Mark it Superseded</button>
+          <button data-act="reverse">Mark it Reversed</button>
+          <button data-act="reactivate">Mark it Active</button>
+        </div>
+        <h3>Remove</h3>
+        <div class="row">
+          <button class="danger" data-act="delete">Delete the open Decision</button>
+          <button class="danger" data-act="deleteAll">Delete every Decision</button>
+          <button data-act="undo">Undo</button>
+        </div>
+        <h3>Areas</h3>
+        <div class="row">
+          <input type="text" id="areaName" placeholder="New area name" />
+          <button data-act="addArea">Add Area</button>
+          <button class="danger" data-act="removeArea">Remove the chosen Area</button>
+        </div>
+        <h3>Filters and the URL</h3>
+        <div class="row">
+          <button data-act="status" data-arg="all">All</button>
+          <button data-act="status" data-arg="active">Active</button>
+          <button data-act="status" data-arg="superseded">Superseded</button>
+          <button data-act="status" data-arg="reversed">Reversed</button>
+        </div>
+        <div class="row" id="areaFilters"></div>
+        <div class="row">
+          <input type="text" id="query" placeholder="Search text" />
+          <button data-act="search">Search</button>
+          <button data-act="open">Open the first Decision</button>
+          <button data-act="close">Close the drawer</button>
+        </div>
+        <h3>The machine it is saved on</h3>
+        <div class="row">
+          <button data-act="save">Save to this browser</button>
+          <button data-act="reload">Reload from this browser</button>
+          <button data-act="newDeploy">Ship a new seed (bump the version)</button>
+          <button class="danger" data-act="resetDemo">Reset demo</button>
+          <button class="danger" data-act="wipe">Wipe the saved Log</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Guided walkthroughs</h2>
+        <div class="tabs" id="tabs"></div>
+        <div class="scenario" id="scenario"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel sticky">
+        <h2>What the Log holds now</h2>
+        <div id="flash"></div>
+
+        <h3>Decisions</h3>
+        <table id="decisions"></table>
+
+        <h3 style="margin-top:18px">Status</h3>
+        <div id="statusFacets"></div>
+
+        <h3 style="margin-top:18px">Area</h3>
+        <div id="areaFacets"></div>
+
+        <h3 style="margin-top:18px">History of the open Decision</h3>
+        <div class="history" id="history"></div>
+
+        <h3 style="margin-top:18px">The URL this state produces</h3>
+        <code class="url" id="url"></code>
+
+        <h3 style="margin-top:18px">Saved on this machine</h3>
+        <div id="storage" style="font-size:13px"></div>
+      </div>
+    </div>
+  </div>
+
+  <hr />
+  <h2>What this prototype is arguing</h2>
+  <p class="lede" style="max-width:80ch">
+    <strong>Undo is a snapshot, not an inverse.</strong> The Log today hands back a change id so
+    <code>undoStatus</code> can take that one Change out again. Every new action would need its own
+    inverse, and &ldquo;delete every Decision&rdquo; has an expensive one. Keeping the previous whole
+    state instead costs a few kilobytes and makes every action undoable the same way.
+  </p>
+  <p class="lede" style="max-width:80ch">
+    <strong>Deleting is removal, not destruction, until the Undo expires.</strong> A deleted Decision
+    takes its Changes with it. Nothing dangles, because nothing is left behind pointing at it.
+  </p>
+  <p class="lede" style="max-width:80ch">
+    <strong>The Area list is derived.</strong> An Area is a string on a Decision. The list the filters
+    and the form show is every Area in use, plus any the user added that nothing uses yet. Removing an
+    Area only stops suggesting it: an Area a Decision still sits in cannot disappear, so a Decision is
+    never in an Area that does not exist.
+  </p>
+  <p class="lede" style="max-width:80ch">
+    <strong>What this prototype found that reading the code did not.</strong> Derivation has a floor
+    problem. Delete every Decision and there are no Areas left, so the form has nothing to pick and the
+    Log cannot be added to — the person is trapped the moment Undo expires. So the Area control has to
+    be a field you can <em>type</em> into, not a list you choose from. That also collapses two features
+    into one: you add an Area by using it, and &ldquo;Add Area&rdquo; needs no separate screen at all.
+  </p>
+  <p class="lede" style="max-width:80ch">
+    <strong>Their Log outranks the seed.</strong> The save records whether anyone put their own
+    Decisions into it. A Log nobody touched is still just the demo, so a deploy refreshes it. The
+    moment someone records one Decision of their own the Log is theirs, and no deploy may touch it
+    again. Reset demo stays the one door back to the seed, and it clears the save as well as the
+    state, so it still means what it says.
+  </p>
+
+<script>
+/* ────────────────────────────────────────────────────────────────────────────
+   THE MODULE UNDER TEST.
+   Pure. No DOM. Lift this into src/pages/demo/state/ once the model is agreed.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+const SEED_VERSION = 1;
+
+const SEED = () => [
+  { id: "d11", title: "Build the driver handover screen ourselves", statement: "We are building it in house instead of buying Shiftly.", rationale: "Handover is the one screen every driver touches twice a day.", decidedOn: "2026-02-09", owner: "Priya", area: "Product", status: "active" },
+  { id: "d10", title: "Stop publishing the weekly changelog", statement: "It goes out when something matters.", rationale: "Three people opened it last quarter. Two of them work here.", decidedOn: "2025-10-16", owner: "Ellie", area: "Product", status: "active" },
+  { id: "d9",  title: "Flat monthly pricing by depot size", statement: "One price per band.", rationale: "Per-vehicle billing turned every renewal into a negotiation.", decidedOn: "2025-07-08", owner: "Marcus", area: "GTM", status: "active" },
+  { id: "d8",  title: "Freeze hiring until August", statement: "No offers until the August board meeting.", rationale: "Eleven months of runway and a pipeline that had gone quiet.", decidedOn: "2025-04-30", owner: "Marcus", area: "Hiring", status: "superseded" },
+  { id: "d7",  title: "Rewrite the driver app as native Android", statement: "The driver app becomes native Android.", rationale: "Offline route sync broke worst on the handsets our drivers carry.", decidedOn: "2025-02-13", owner: "Naz", area: "Engineering", status: "active" },
+  { id: "d3",  title: "Build the driver app in React Native", statement: "One codebase for both platforms.", rationale: "We had two web developers and no mobile ones.", decidedOn: "2024-06-27", owner: "Tom", area: "Engineering", status: "reversed" },
+];
+
+const SEED_CHANGES = () => [
+  { id: "h1", decisionId: "d3",  kind: "created", at: "2024-06-27", by: "Tom" },
+  { id: "h2", decisionId: "d3",  kind: "status",  at: "2025-02-13", by: "Naz", from: "active", to: "reversed" },
+  { id: "h3", decisionId: "d7",  kind: "created", at: "2025-02-13", by: "Naz" },
+  { id: "h4", decisionId: "d8",  kind: "created", at: "2025-04-30", by: "Marcus" },
+  { id: "h5", decisionId: "d8",  kind: "status",  at: "2025-07-08", by: "Marcus", from: "active", to: "superseded" },
+  { id: "h6", decisionId: "d9",  kind: "created", at: "2025-07-08", by: "Marcus" },
+  { id: "h7", decisionId: "d10", kind: "created", at: "2025-10-16", by: "Ellie" },
+  { id: "h8", decisionId: "d11", kind: "created", at: "2026-02-09", by: "Priya" },
+];
+
+const STATUSES = ["active", "superseded", "reversed"];
+
+/* Local date, not UTC. The bug the audit found. */
+const today = () => {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+function initialState(seedVersion = SEED_VERSION) {
+  return {
+    decisions: SEED(),
+    changes: SEED_CHANGES(),
+    /* Areas the user added that nothing uses yet. The real list is derived. */
+    addedAreas: [],
+    filters: { status: "all", area: "all", query: "" },
+    openId: null,
+    seedVersion,
+    /* Has this person put anything of their own in? Their work outranks the
+       seed, so a deploy may only refresh the Log of someone who never did. */
+    touched: false,
+    /* One level deep. Enough for a toast's lifetime, which is all Undo promises. */
+    undo: null,
+  };
+}
+
+/* ── Derived ─────────────────────────────────────────────────────────────── */
+
+/**
+ * Every Area a Decision actually sits in, plus the ones the user added that
+ * nothing uses yet. Derivation is why a Decision can never point at an Area
+ * that does not exist: the Decision IS what makes the Area exist.
+ */
+function areasOf(state) {
+  const inUse = new Set(state.decisions.map((d) => d.area));
+  const all = new Set([...inUse, ...state.addedAreas]);
+  return [...all].sort().map((name) => ({ name, inUse: inUse.has(name) }));
+}
+
+function matchesQuery(decision, query) {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return true;
+  /* Owner and Area included. The audit found searching an owner's name missed
+     the Decisions they own. */
+  return [decision.title, decision.statement, decision.rationale, decision.owner, decision.area]
+    .join(" ").toLowerCase().includes(needle);
+}
+
+const byNewest = (a, b) => b.decidedOn.localeCompare(a.decidedOn);
+
+function visible(state) {
+  const { status, area, query } = state.filters;
+  return state.decisions
+    .filter((d) => (status === "all" || d.status === status)
+                && (area === "all" || d.area === area)
+                && matchesQuery(d, query))
+    .sort(byNewest);
+}
+
+/**
+ * A facet's count is taken against everything EXCEPT its own dimension, so a
+ * count never promises rows that clicking it would not produce.
+ */
+function countsFor(state, dimension) {
+  const { status, area, query } = state.filters;
+  const pool = state.decisions.filter((d) =>
+    (dimension === "status" || status === "all" || d.status === status) &&
+    (dimension === "area" || area === "all" || d.area === area) &&
+    matchesQuery(d, query));
+
+  if (dimension === "status") {
+    const counts = { all: pool.length, active: 0, superseded: 0, reversed: 0 };
+    for (const d of pool) counts[d.status] += 1;
+    return counts;
+  }
+  const counts = { all: pool.length };
+  for (const { name } of areasOf(state)) counts[name] = 0;
+  for (const d of pool) counts[d.area] = (counts[d.area] ?? 0) + 1;
+  return counts;
+}
+
+function historyFor(state, decisionId) {
+  return state.changes
+    .map((change, order) => ({ change, order }))
+    .filter((e) => e.change.decisionId === decisionId)
+    .sort((a, b) => b.change.at.localeCompare(a.change.at) || b.order - a.order)
+    .map((e) => e.change);
+}
+
+/** Any Change whose Decision is gone. Should always be empty. */
+function orphanedChanges(state) {
+  const live = new Set(state.decisions.map((d) => d.id));
+  return state.changes.filter((c) => !live.has(c.decisionId));
+}
+
+function toUrl(state) {
+  const p = new URLSearchParams();
+  if (state.filters.status !== "all") p.set("status", state.filters.status);
+  if (state.filters.area !== "all") p.set("area", state.filters.area);
+  if (state.filters.query.trim()) p.set("q", state.filters.query.trim());
+  if (state.openId) p.set("id", state.openId);
+  const qs = p.toString();
+  return "/decision-log/demo.html" + (qs ? "?" + qs : "");
+}
+
+function fromUrl(search, state) {
+  const p = new URLSearchParams(search);
+  const area = p.get("area");
+  const known = new Set(areasOf(state).map((a) => a.name));
+  return {
+    status: STATUSES.includes(p.get("status")) ? p.get("status") : "all",
+    /* An Area from a link that no longer exists falls back rather than showing
+       an empty Log with a filter the sidebar cannot even display. */
+    area: area && known.has(area) ? area : "all",
+    query: p.get("q") ?? "",
+    openId: p.get("id"),
+  };
+}
+
+/* ── The reducer ─────────────────────────────────────────────────────────── */
+
+/** Everything an Undo needs: the whole Log before the action. */
+const snapshot = (state, label) => ({
+  label,
+  decisions: state.decisions,
+  changes: state.changes,
+  addedAreas: state.addedAreas,
+  openId: state.openId,
+});
+
+function reduce(state, action) {
+  switch (action.type) {
+    case "SET_STATUS":
+      return { ...state, filters: { ...state.filters, status: action.status } };
+    case "SET_AREA":
+      return { ...state, filters: { ...state.filters, area: action.area } };
+    case "SEARCH":
+      return { ...state, filters: { ...state.filters, query: action.query } };
+    case "CLEAR_FILTERS":
+      return { ...state, filters: { status: "all", area: "all", query: "" } };
+
+    case "OPEN":
+      return { ...state, openId: action.id };
+    case "CLOSE":
+      return { ...state, openId: null };
+
+    case "CREATE": {
+      const decision = {
+        id: uid(), title: action.title, statement: action.statement ?? "A decision made in the prototype.",
+        rationale: action.rationale ?? "Recorded to see what the model does.",
+        decidedOn: today(), owner: action.owner ?? "You", area: action.area, status: "active",
+      };
+      return {
+        ...state,
+        undo: snapshot(state, `recording “${decision.title}”`),
+        touched: true,
+        decisions: [...state.decisions, decision],
+        changes: [...state.changes, { id: uid(), decisionId: decision.id, kind: "created", at: today(), by: "You" }],
+        /* Recording a Decision in a new Area moves that Area from "added" to
+           "in use" on its own, because in-use is derived. Nothing to update. */
+        openId: decision.id,
+      };
+    }
+
+    case "EDIT": {
+      const before = state.decisions.find((d) => d.id === action.id);
+      if (!before) return state;
+      const after = { ...before, ...action.patch };
+      const fields = Object.keys(action.patch)
+        .filter((k) => before[k] !== after[k])
+        .map((k) => ({ field: k, from: String(before[k]), to: String(after[k]) }));
+      if (fields.length === 0) return state;
+      return {
+        ...state,
+        undo: snapshot(state, "that edit"),
+        touched: true,
+        decisions: state.decisions.map((d) => (d.id === action.id ? after : d)),
+        changes: [...state.changes, { id: uid(), decisionId: action.id, kind: "edited", at: today(), by: "You", fields }],
+      };
+    }
+
+    case "SET_DECISION_STATUS": {
+      const before = state.decisions.find((d) => d.id === action.id);
+      if (!before || before.status === action.status) return state;
+      return {
+        ...state,
+        undo: snapshot(state, `marking it ${action.status}`),
+        touched: true,
+        decisions: state.decisions.map((d) => (d.id === action.id ? { ...d, status: action.status } : d)),
+        changes: [...state.changes, { id: uid(), decisionId: action.id, kind: "status", at: today(), by: "You", from: before.status, to: action.status }],
+      };
+    }
+
+    /**
+     * A deleted Decision takes its Changes with it. The history of something
+     * that is not in the Log is not history, it is a dangling pointer.
+     */
+    case "DELETE": {
+      const gone = state.decisions.find((d) => d.id === action.id);
+      if (!gone) return state;
+      return {
+        ...state,
+        undo: snapshot(state, `deleting “${gone.title}”`),
+        touched: true,
+        decisions: state.decisions.filter((d) => d.id !== action.id),
+        changes: state.changes.filter((c) => c.decisionId !== action.id),
+        openId: state.openId === action.id ? null : state.openId,
+        /* The Area survives only if another Decision still uses it, or the user
+           added it. Both are handled by derivation. Nothing to clean up here. */
+      };
+    }
+
+    case "DELETE_ALL": {
+      if (state.decisions.length === 0) return state;
+      return {
+        ...state,
+        undo: snapshot(state, `deleting all ${state.decisions.length} Decisions`),
+        touched: true,
+        decisions: [],
+        changes: [],
+        openId: null,
+        /* Filters are deliberately left alone: a filtered empty Log tells the
+           truth, and the facet counts all read zero, which is also true. */
+      };
+    }
+
+    case "ADD_AREA": {
+      const name = action.name.trim();
+      if (!name) return state;
+      if (areasOf(state).some((a) => a.name.toLowerCase() === name.toLowerCase())) return state;
+      return { ...state, touched: true, addedAreas: [...state.addedAreas, name] };
+    }
+
+    /**
+     * Removing an Area only stops suggesting it. An Area a Decision sits in is
+     * derived from that Decision and cannot be removed while it is in use.
+     */
+    case "REMOVE_AREA": {
+      const area = areasOf(state).find((a) => a.name === action.name);
+      if (!area) return state;
+      if (area.inUse) return { ...state, lastRefusal: `“${action.name}” is in use, so it stays.` };
+      return {
+        ...state,
+        touched: true,
+        addedAreas: state.addedAreas.filter((n) => n !== action.name),
+        filters: state.filters.area === action.name
+          ? { ...state.filters, area: "all" } : state.filters,
+      };
+    }
+
+    case "UNDO": {
+      if (!state.undo) return state;
+      const { decisions, changes, addedAreas, openId } = state.undo;
+      return { ...state, decisions, changes, addedAreas, openId, undo: null };
+    }
+
+    /** Reset means reset. It clears the save too, or the next load undoes it. */
+    case "RESET_DEMO":
+      return initialState(state.seedVersion);
+
+    case "LOAD": {
+      if (!action.saved) return { ...initialState(state.seedVersion), loadNote: "fresh" };
+      /**
+       * The rule that makes persistence worth having: a Log someone has put
+       * their own Decisions into is theirs, and a deploy never touches it.
+       * A Log nobody touched is still just the demo, so it gets the new seed.
+       */
+      if (!action.saved.touched && action.saved.seedVersion !== state.seedVersion) {
+        return { ...initialState(state.seedVersion), loadNote: "reseeded" };
+      }
+      return {
+        ...state,
+        decisions: action.saved.decisions,
+        changes: action.saved.changes,
+        addedAreas: action.saved.addedAreas,
+        touched: action.saved.touched,
+        undo: null,
+        loadNote: "restored",
+      };
+    }
+
+    case "BUMP_SEED_VERSION":
+      return { ...state, seedVersion: state.seedVersion + 1 };
+
+    default:
+      return state;
+  }
+}
+
+/** What goes to the machine. Filters and the open drawer belong in the URL. */
+const toSaved = (state) => ({
+  seedVersion: state.seedVersion,
+  touched: state.touched,
+  decisions: state.decisions,
+  changes: state.changes,
+  addedAreas: state.addedAreas,
+});
+
+/* ────────────────────────────────────────────────────────────────────────────
+   THE PAGE. Throwaway. Calls into the module above; nothing flows back.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+const KEY = "PROTOTYPE-decision-log-wipe-me";
+
+/**
+ * Real localStorage when the page is served, an in-memory stand-in when it is
+ * opened straight off disk (Chrome blocks storage on file:// URLs). The model
+ * cannot tell the difference, which is the point: it only ever sees a string.
+ */
+const store = (() => {
+  try {
+    localStorage.setItem(KEY + "-probe", "1");
+    localStorage.removeItem(KEY + "-probe");
+    return { kind: "localStorage", get: (k) => localStorage.getItem(k), set: (k, v) => localStorage.setItem(k, v), remove: (k) => localStorage.removeItem(k) };
+  } catch {
+    const mem = new Map();
+    return { kind: "in-memory stand-in", get: (k) => mem.get(k) ?? null, set: (k, v) => mem.set(k, v), remove: (k) => mem.delete(k) };
+  }
+})();
+let state = initialState();
+let flash = null;
+
+function dispatch(action, message) {
+  const before = state;
+  state = reduce(state, action);
+  if (state === before && !message) flash = { kind: "warn", text: "Nothing changed. That action was a no-op here." };
+  else if (state.lastRefusal) { flash = { kind: "warn", text: state.lastRefusal }; state = { ...state, lastRefusal: null }; }
+  else if (message) flash = { kind: "ok", text: message };
+  render();
+}
+
+const el = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function render() {
+  const shown = visible(state);
+  const areas = areasOf(state);
+  const orphans = orphanedChanges(state);
+
+  el("flash").innerHTML = flash
+    ? `<div class="flash ${flash.kind === "warn" ? "warn" : flash.kind === "bad" ? "bad" : ""}">${esc(flash.text)}</div>`
+    : "";
+
+  el("decisions").innerHTML = state.decisions.length === 0
+    ? `<tr><td style="border:none;color:var(--ink-faint)">The Log is empty.${state.undo ? " Undo is still available." : ""}</td></tr>`
+    : `<tr><th></th><th>Decision</th><th>Area</th></tr>` + state.decisions.slice().sort(byNewest).map((d) => {
+        const hidden = !shown.some((s) => s.id === d.id);
+        return `<tr class="${hidden ? "gone" : ""}">
+          <td><span class="dot ${d.status}"></span></td>
+          <td>${d.id === state.openId ? "<strong>" : ""}${esc(d.title)}${d.id === state.openId ? "</strong> &larr; open" : ""}
+              ${hidden ? '<span class="tag">filtered out</span>' : ""}</td>
+          <td>${esc(d.area)}</td></tr>`;
+      }).join("");
+
+  const sc = countsFor(state, "status");
+  el("statusFacets").innerHTML = ["all", ...STATUSES].map((s) => `
+    <div class="facet ${state.filters.status === s ? "chosen" : ""} ${sc[s] === 0 ? "empty" : ""}">
+      <span>${s === "all" ? "All" : s[0].toUpperCase() + s.slice(1)}</span>
+      <span class="n">${sc[s]}</span></div>`).join("");
+
+  const ac = countsFor(state, "area");
+  el("areaFacets").innerHTML = `
+    <div class="facet ${state.filters.area === "all" ? "chosen" : ""}"><span>Every area</span><span class="n">${ac.all}</span></div>`
+    + areas.map((a) => `
+      <div class="facet ${state.filters.area === a.name ? "chosen" : ""} ${ac[a.name] === 0 ? "empty" : ""}">
+        <span>${esc(a.name)}${a.inUse ? '<span class="tag derived">in use</span>' : '<span class="tag">added</span>'}</span>
+        <span class="n">${ac[a.name] ?? 0}</span></div>`).join("")
+    + (orphans.length
+        ? `<div class="facet"><span class="orphan">${orphans.length} orphaned Change${orphans.length > 1 ? "s" : ""}</span></div>`
+        : `<div class="note">No orphaned Changes. ${state.changes.length} Change${state.changes.length === 1 ? "" : "s"} all point at a Decision that exists.</div>`);
+
+  const history = state.openId ? historyFor(state, state.openId) : [];
+  el("history").innerHTML = !state.openId
+    ? '<span style="color:var(--ink-faint)">Nothing open.</span>'
+    : history.length === 0
+      ? '<span style="color:var(--ink-faint)">No history.</span>'
+      : history.map((c) => `<div>${c.at} &middot; ${esc(c.by)} &middot; ${
+          c.kind === "status" ? `Status ${c.from} &rarr; ${c.to}`
+          : c.kind === "edited" ? `Edited ${c.fields.map((f) => esc(f.field)).join(", ")}`
+          : "Created"}</div>`).join("");
+
+  el("url").textContent = toUrl(state);
+
+  const saved = readSaved();
+  el("storage").innerHTML = saved
+    ? `Seed version <strong>${saved.seedVersion}</strong> (running version ${state.seedVersion})<br />
+       ${saved.decisions.length} Decisions, ${saved.changes.length} Changes<br />
+       <span class="mono">${new Blob([JSON.stringify(saved)]).size} bytes under ${KEY}</span><br />
+       <span class="mono" style="color:var(--ink-faint)">via ${store.kind}</span>
+       ${saved.seedVersion !== state.seedVersion ? '<div class="flash warn" style="margin-top:8px">This save is from an older seed. A reload will discard it.</div>' : ""}`
+    : `<span style="color:var(--ink-faint)">Nothing saved on this machine.</span><br />
+         <span class="mono" style="color:var(--ink-faint)">via ${store.kind}</span>`;
+
+  el("areaFilters").innerHTML =
+    `<button data-act="area" data-arg="all">Every area</button>` +
+    areas.map((a) => `<button data-act="area" data-arg="${esc(a.name)}">${esc(a.name)}</button>`).join("");
+
+  renderScenario();
+}
+
+function readSaved() { try { return JSON.parse(store.get(KEY)); } catch { return null; } }
+
+/* ── Actions wired to the page ───────────────────────────────────────────── */
+
+let coined = 0;
+const firstId = () => (visible(state)[0] ?? state.decisions[0])?.id ?? null;
+
+const ACTIONS = {
+  create: () => {
+    const area = areasOf(state)[0]?.name ?? "Product";
+    dispatch({ type: "CREATE", title: `A decision we made (${++coined})`, area }, `Recorded into ${area}.`);
+  },
+  createIn: (area) => dispatch({ type: "CREATE", title: `A decision about ${area}`, area }, `Recorded into ${area}.`),
+  edit: () => state.openId
+    ? dispatch({ type: "EDIT", id: state.openId, patch: { rationale: `Rewritten at ${new Date().toLocaleTimeString()}.` } }, "Edited. A Change was recorded.")
+    : (flash = { kind: "warn", text: "Open a Decision first." }, render()),
+  supersede: () => state.openId && dispatch({ type: "SET_DECISION_STATUS", id: state.openId, status: "superseded" }, "Marked Superseded."),
+  reverse: () => state.openId && dispatch({ type: "SET_DECISION_STATUS", id: state.openId, status: "reversed" }, "Marked Reversed."),
+  reactivate: () => state.openId && dispatch({ type: "SET_DECISION_STATUS", id: state.openId, status: "active" }, "Marked Active."),
+  delete: () => state.openId
+    ? dispatch({ type: "DELETE", id: state.openId }, "Deleted. Its Changes went with it. Undo is available.")
+    : (flash = { kind: "warn", text: "Open a Decision first." }, render()),
+  deleteAll: () => dispatch({ type: "DELETE_ALL" }, "Every Decision gone. One Undo brings them all back."),
+  undo: () => state.undo
+    ? dispatch({ type: "UNDO" }, `Undid ${state.undo.label}.`)
+    : (flash = { kind: "warn", text: "Nothing to undo." }, render()),
+  addArea: () => {
+    const name = el("areaName").value.trim();
+    if (!name) { flash = { kind: "warn", text: "Type a name first." }; return render(); }
+    el("areaName").value = "";
+    dispatch({ type: "ADD_AREA", name }, `Added “${name}”. Nothing uses it yet.`);
+  },
+  removeArea: () => {
+    const name = state.filters.area;
+    if (name === "all") { flash = { kind: "warn", text: "Choose an Area in the filters first." }; return render(); }
+    dispatch({ type: "REMOVE_AREA", name }, `Removed “${name}” from the suggestions.`);
+  },
+  status: (s) => dispatch({ type: "SET_STATUS", status: s }, null),
+  area: (a) => dispatch({ type: "SET_AREA", area: a }, null),
+  search: () => dispatch({ type: "SEARCH", query: el("query").value }, `Searching for “${el("query").value}”.`),
+  open: () => { const id = firstId(); id ? dispatch({ type: "OPEN", id }, null) : (flash = { kind: "warn", text: "Nothing to open." }, render()); },
+  close: () => dispatch({ type: "CLOSE" }, null),
+  save: () => { store.set(KEY, JSON.stringify(toSaved(state))); flash = { kind: "ok", text: "Saved to this browser." }; render(); },
+  reload: () => {
+    const saved = readSaved();
+    dispatch({ type: "LOAD", saved }, null);
+    flash = state.loadNote === "restored"
+      ? { kind: "ok", text: saved.touched ? "Restored their Log. It is theirs, so the seed version was ignored." : "Restored the saved Log." }
+      : state.loadNote === "reseeded"
+        ? { kind: "warn", text: "Nobody had touched that save, so it was only the old demo. Replaced with the new seed." }
+        : { kind: "warn", text: "Nothing saved, so the seed came back." };
+    render();
+  },
+  newDeploy: () => dispatch({ type: "BUMP_SEED_VERSION" }, "Pretend we shipped. The running seed version went up; the save did not."),
+  resetDemo: () => { store.remove(KEY); dispatch({ type: "RESET_DEMO" }, "Back to the seed, and the save is gone with it."); },
+  wipe: () => { store.remove(KEY); flash = { kind: "ok", text: "Wiped." }; render(); },
+};
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-act]");
+  if (!b) return;
+  const fn = ACTIONS[b.dataset.act];
+  if (fn) { fn(b.dataset.arg); if (b.classList.contains("step")) advance(); }
+});
+
+/* ── Walkthroughs ────────────────────────────────────────────────────────── */
+
+const SCENARIOS = [
+  {
+    name: "Delete and take it back",
+    blurb: "The ordinary case, and the one that decides whether delete can exist at all. A Decision carries its history with it in both directions.",
+    watch: "Watch the Change count and the orphan line. A deleted Decision's Changes go with it, so nothing is ever left pointing at something that is gone.",
+    steps: [
+      ["Open the first Decision", "open"],
+      ["Mark it Superseded (so it has history)", "supersede"],
+      ["Delete it", "delete"],
+      ["Undo", "undo"],
+      ["Open it again and read the history", "open"],
+    ],
+  },
+  {
+    name: "Delete everything",
+    blurb: "The destructive one. Today's Reset demo is safe because nothing is saved. Once the Log persists, Delete all is the action that can cost someone real work.",
+    watch: "One Undo restores all of it, because Undo keeps the previous Log rather than an inverse of each action. Note the facet counts all read zero: an empty Log with filters still on tells the truth.",
+    steps: [
+      ["Filter to Active", "status", "active"],
+      ["Delete every Decision", "deleteAll"],
+      ["Undo", "undo"],
+      ["Back to All", "status", "all"],
+    ],
+  },
+  {
+    name: "Remove an Area that is in use",
+    blurb: "The one that breaks a naive model. If Areas were a list the user edits directly, removing one would leave every Decision in it pointing at nothing.",
+    watch: "Removing an Area in use is refused, and the refusal explains itself. The Area list is derived from the Decisions, so a Decision cannot outlive its own Area.",
+    steps: [
+      ["Add an Area called Legal", "addArea", "__Legal"],
+      ["Filter to Legal (it is empty, and marked 'added')", "area", "Legal"],
+      ["Remove it — allowed, nothing uses it", "removeArea"],
+      ["Add Legal back", "addArea", "__Legal"],
+      ["Record a Decision in Legal", "createIn", "Legal"],
+      ["Filter to Legal", "area", "Legal"],
+      ["Try to remove it — now refused", "removeArea"],
+      ["Delete that Decision", "delete"],
+      ["Legal is gone from the list on its own", "area", "all"],
+    ],
+  },
+  {
+    name: "Their Log survives your deploy",
+    blurb: "The scenario that decides whether persistence is worth having. Someone kept a real Log here last month. You have shipped since. Nothing you ship may cost them a Decision they wrote.",
+    watch: "First a save nobody touched: a deploy replaces it, because it was only the demo. Then a save with their own Decision in it: the same deploy leaves it completely alone. Reset demo stays the one door back, and it clears the save too, or the next reload would quietly undo the reset.",
+    steps: [
+      ["Save the untouched demo", "save"],
+      ["Ship a new seed", "newDeploy"],
+      ["Reload \u2014 replaced, nobody had touched it", "reload"],
+      ["Now record a Decision of their own", "create"],
+      ["Save", "save"],
+      ["Ship another new seed", "newDeploy"],
+      ["Reload \u2014 their Log is untouched", "reload"],
+      ["Reset demo", "resetDemo"],
+      ["Reload \u2014 the reset held", "reload"],
+    ],
+  },
+  {
+    name: "The empty Log traps you",
+    blurb: "Found by this prototype, not by reading the code. Deriving the Area list from the Decisions is what stops an Area ever dangling \u2014 but it also means an empty Log has no Areas at all, and the form cannot be filled without one.",
+    watch: "After Delete everything, the Area list is empty. Undo is the only way back, and once it expires the person is stuck with a Log they cannot add to. The fix is that the form lets you TYPE an Area, not only pick one: then adding an Area and using an Area are the same act, and an empty list is survivable.",
+    steps: [
+      ["Delete every Decision", "deleteAll"],
+      ["Look at the Area list \u2014 nothing left", "area", "all"],
+      ["Try to record a Decision (the form has no Area)", "create"],
+      ["Undo back out of it", "undo"],
+    ],
+  },
+  {
+    name: "Counts that do not lie",
+    blurb: "The defect the audit found in the real Log: facet counts were taken over every Decision, so combining two filters offered rows that did not exist.",
+    watch: "Pick Hiring, then look at the Status counts: they now describe Hiring only. A zero is shown in red. Clicking a count always produces exactly that many rows.",
+    steps: [
+      ["Filter to Engineering", "area", "Engineering"],
+      ["Look at the Status counts, then pick Reversed", "status", "reversed"],
+      ["Now pick Hiring — Reversed reads 0", "area", "Hiring"],
+      ["Search 'Marcus' (Owner is searchable now)", "search", "__Marcus"],
+      ["Clear it", "status", "all"],
+    ],
+  },
+];
+
+let tab = 0, step = 0;
+
+function startTab(i) {
+  tab = i; step = 0;
+  store.remove(KEY);
+  state = initialState();
+  coined = 0;
+  flash = { kind: "ok", text: `Reset to the seed for “${SCENARIOS[i].name}”.` };
+  render();
+}
+
+function advance() { step += 1; renderScenario(); }
+
+function renderScenario() {
+  el("tabs").innerHTML = SCENARIOS.map((s, i) =>
+    `<button data-tab="${i}" aria-selected="${i === tab}">${esc(s.name)}</button>`).join("");
+  const s = SCENARIOS[tab];
+  el("scenario").innerHTML = `
+    <p>${esc(s.blurb)}</p>
+    <div class="watch"><strong>What to watch:</strong> ${esc(s.watch)}</div>
+    ${s.steps.map(([label, act, arg], i) => {
+      const cls = i < step ? "done" : i === step ? "next" : "";
+      const a = arg?.startsWith("__") ? "" : arg ?? "";
+      return `<button class="step ${cls}" data-act="${act}" data-arg="${esc(a)}" data-pre="${esc(arg ?? "")}">${i + 1}. ${esc(label)}</button>`;
+    }).join("")}
+    ${step >= s.steps.length ? '<div class="flash" style="margin-top:12px">Walkthrough finished. Keep poking at it with the free-play buttons above.</div>' : ""}`;
+}
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button[data-tab]");
+  if (t) startTab(Number(t.dataset.tab));
+  const s = e.target.closest("button.step[data-pre]");
+  if (s && s.dataset.pre.startsWith("__")) {
+    const value = s.dataset.pre.slice(2);
+    if (s.dataset.act === "addArea") el("areaName").value = value;
+    if (s.dataset.act === "search") el("query").value = value;
+  }
+}, true);
+
+startTab(0);
+</script>
+</div>
+</body>
+</html>

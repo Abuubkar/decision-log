@@ -2,3 +2,6 @@
 # submission, not to the codebase, and their wording has to stay untouched.
 PROMPTS.md
 TASK.md
+
+# Throwaway prototype. It answers a question, it does not ship.
+src/pages/demo/state/PROTOTYPE-log-model.html
