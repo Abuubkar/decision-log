@@ -7,12 +7,17 @@ import { Input } from "@/components/Input";
 import { Select } from "@/components/Select";
 import { Textarea } from "@/components/Textarea";
 import { today } from "@/domain/decisions";
-import { AREAS } from "@/domain/types";
 import { styles } from "./decisionForm.styles";
 import type { DecisionFormProps, DecisionValues } from "./decisionForm.types";
 import { LIMITS, RULES, emptyDecision } from "./decisionForm.validation";
 
-export function DecisionForm({ decision, onSubmit, onCancel, onDirtyChange }: DecisionFormProps) {
+export function DecisionForm({
+  decision,
+  areas,
+  onSubmit,
+  onCancel,
+  onDirtyChange,
+}: DecisionFormProps) {
   const {
     register,
     handleSubmit,
@@ -28,7 +33,7 @@ export function DecisionForm({ decision, onSubmit, onCancel, onDirtyChange }: De
           owner: decision.owner,
           area: decision.area,
         }
-      : emptyDecision(),
+      : emptyDecision(areas[0] ?? ""),
   });
 
   useEffect(() => {
@@ -97,8 +102,8 @@ export function DecisionForm({ decision, onSubmit, onCancel, onDirtyChange }: De
 
         <Field label="Area" error={errors.area?.message}>
           <Select {...register("area", RULES.area)}>
-            {AREAS.map((area) => (
-              <option key={area}>{area}</option>
+            {areas.map((name) => (
+              <option key={name}>{name}</option>
             ))}
           </Select>
         </Field>

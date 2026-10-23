@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Box } from "@/components/Box";
 import { Button } from "@/components/Button";
 import { Text } from "@/components/Text";
-import { AREAS, STATUSES } from "@/domain/types";
+import { STATUSES } from "@/domain/types";
 import { styles } from "./log.styles";
 import type { LogProps } from "./log.types";
 
@@ -64,17 +64,17 @@ export function LogFilters({ log }: LogProps) {
       <Group title="Area">
         <Filter
           label="Every area"
-          count={log.areaCounts.get("all") ?? 0}
-          chosen={log.area === "all"}
-          onClick={() => log.setArea("all")}
+          count={log.areaCounts.all}
+          chosen={log.area === null}
+          onClick={() => log.setArea(null)}
         />
-        {AREAS.map((area) => (
+        {log.areas.map(({ name }) => (
           <Filter
-            key={area}
-            label={area}
-            count={log.areaCounts.get(area) ?? 0}
-            chosen={log.area === area}
-            onClick={() => log.setArea(area)}
+            key={name}
+            label={name}
+            count={log.areaCounts.byArea.get(name) ?? 0}
+            chosen={log.area === name}
+            onClick={() => log.setArea(name)}
           />
         ))}
       </Group>

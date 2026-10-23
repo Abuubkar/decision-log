@@ -11,23 +11,18 @@ const label = (status: Status) => status[0]!.toUpperCase() + status.slice(1);
 
 type Props = {
   decision: Decision;
-  onChangeStatus: (id: string, from: Status, to: Status) => string;
-  onUndoStatus: (id: string, back: Status, changeId: string) => void;
+  onChangeStatus: (id: string, status: Status) => void;
+  onUndo: () => void;
 };
 
 /** Changing a status confirms itself, and offers the way back. */
-export function StatusControl({ decision, onChangeStatus, onUndoStatus }: Props) {
+export function StatusControl({ decision, onChangeStatus, onUndo }: Props) {
   const toast = useToast();
 
   function change(next: Status) {
     if (decision.status === next) return;
-    const previous = decision.status;
-    const { id, title } = decision;
-    const changeId = onChangeStatus(id, previous, next);
-    toast(`Marked “${title}” ${next}`, {
-      label: "Undo",
-      run: () => onUndoStatus(id, previous, changeId),
-    });
+    onChangeStatus(decision.id, next);
+    toast(`Marked “${decision.title}” ${next}`, { label: "Undo", run: onUndo });
   }
 
   return (

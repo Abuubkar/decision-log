@@ -1,8 +1,13 @@
 export const STATUSES = ["active", "superseded", "reversed"] as const;
 export type Status = (typeof STATUSES)[number];
 
-export const AREAS = ["Product", "Engineering", "GTM", "Hiring"] as const;
-export type Area = (typeof AREAS)[number];
+/**
+ * An area is whatever a team calls that part of its business, so it is a
+ * string and not a union. The four below are only what a new log starts with.
+ */
+export type Area = string;
+
+export const DEFAULT_AREAS: Area[] = ["Product", "Engineering", "GTM", "Hiring"];
 
 export type Decision = {
   id: string;

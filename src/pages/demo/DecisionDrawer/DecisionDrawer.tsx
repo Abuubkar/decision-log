@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Drawer } from "@/components/Drawer";
 import { Text } from "@/components/Text";
 import { useToast } from "@/components/Toast";
+import { AreaList } from "../AreaList";
 import { DecisionForm } from "../DecisionForm";
 import { DecisionDetail } from "./DecisionDetail";
 import { HEADINGS } from "./decisionDrawer.copy";
@@ -15,12 +16,17 @@ import type { DecisionDrawerProps } from "./decisionDrawer.types";
 export function DecisionDrawer({
   drawer,
   decision,
+  areas,
+  areaCounts,
   onClose,
   onEdit,
   onView,
   onChangeStatus,
-  onUndoStatus,
+  onDelete,
   onSave,
+  onAddArea,
+  onRemoveArea,
+  onUndo,
   history,
 }: DecisionDrawerProps) {
   const toast = useToast();
@@ -82,6 +88,7 @@ export function DecisionDrawer({
     >
       {mode === "create" && (
         <DecisionForm
+          areas={areas.map(({ name }) => name)}
           onDirtyChange={onDirtyChange}
           onCancel={closeIfAllowed}
           onSubmit={(values) => {
@@ -96,6 +103,7 @@ export function DecisionDrawer({
       {mode === "edit" && decision && (
         <DecisionForm
           decision={decision}
+          areas={areas.map(({ name }) => name)}
           onDirtyChange={onDirtyChange}
           onCancel={() => onView(decision.id)}
           onSubmit={(values) => {
@@ -111,8 +119,13 @@ export function DecisionDrawer({
           decision={decision}
           history={history}
           onChangeStatus={onChangeStatus}
-          onUndoStatus={onUndoStatus}
+          onDelete={onDelete}
+          onUndo={onUndo}
         />
+      )}
+
+      {mode === "areas" && (
+        <AreaList areas={areas} counts={areaCounts} onAdd={onAddArea} onRemove={onRemoveArea} />
       )}
     </Drawer>
   );
