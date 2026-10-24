@@ -8,6 +8,15 @@ import { colors, radii, space, type } from "@/tokens.stylex";
  */
 const touch = "@media (pointer: coarse)";
 
+/**
+ * The toolbar keeps one row at every width. Below the first the search stops
+ * being capped and takes whatever the row has left, because a tablet has no
+ * reason to hold the search to a desktop's measure. Below the second the button
+ * drops its words for a mark, which is the only way both still fit on a phone.
+ */
+const fills = "@media (max-width: 900px)";
+const markOnly = "@media (max-width: 560px)";
+
 export const styles = stylex.create({
   frame: {
     maxWidth: "1120px",
@@ -35,14 +44,30 @@ export const styles = stylex.create({
     borderBottomColor: colors.rule,
     backgroundColor: colors.paperSunk,
   },
-  // On a phone the search takes its own row. Sharing one with the button left it
-  // pinned at its minimum, exactly one character short of its own placeholder.
   search: {
     flex: 1,
-    maxWidth: { default: "340px", "@media (max-width: 780px)": "none" },
-    minWidth: { default: "140px", "@media (max-width: 780px)": "100%" },
+    maxWidth: { default: "340px", [fills]: "none" },
+    // Wide enough for its own placeholder, which is what it was a character
+    // short of before.
+    minWidth: "180px",
   },
-  spacer: { flex: { default: 1, "@media (max-width: 780px)": 0 } },
+  // Only a desktop has room to spare, so only a desktop gives any away.
+  spacer: { flex: { default: 1, [fills]: 0 } },
+  create: {
+    flexShrink: 0,
+    justifyContent: "center",
+    /**
+     * Once it is a mark it has to be the search field's own size, not its own.
+     * Both carry the same box: space.sm top and bottom, a 1px border, and a
+     * 20px line in the middle. Giving the mark that same 20px line and the same
+     * padding on all four sides makes it exactly as tall as the field, and
+     * square. A stretched height with an aspect ratio does not work here,
+     * because a flex item takes its width from its content first.
+     */
+    paddingInline: { default: space.base, [markOnly]: space.sm },
+  },
+  createMark: { display: { default: "none", [markOnly]: "block" }, width: "20px", height: "20px" },
+  createWords: { display: { default: "inline", [markOnly]: "none" } },
   body: {
     display: "grid",
     // minmax(0, 1fr) and not 1fr: a grid column defaults to its content's
