@@ -8,6 +8,14 @@ import { colors, radii, space, type } from "@/tokens.stylex";
  */
 const touch = "@media (pointer: coarse)";
 
+/**
+ * The toolbar breaks later than the rest of the log. The sidebar has to fold at
+ * 780px, but the search and New decision sit side by side comfortably well below
+ * that, and a tablet at 768px has room to spare. They only stack once the search
+ * would be squeezed under its own placeholder.
+ */
+const stacked = "@media (max-width: 560px)";
+
 export const styles = stylex.create({
   frame: {
     maxWidth: "1120px",
@@ -37,12 +45,14 @@ export const styles = stylex.create({
   },
   // On a phone the search takes its own row. Sharing one with the button left it
   // pinned at its minimum, exactly one character short of its own placeholder.
+  // Its minimum is wide enough for that placeholder now, so the row holds
+  // together down to where it genuinely runs out of width.
   search: {
     flex: 1,
-    maxWidth: { default: "340px", "@media (max-width: 780px)": "none" },
-    minWidth: { default: "140px", "@media (max-width: 780px)": "100%" },
+    maxWidth: { default: "340px", [stacked]: "none" },
+    minWidth: { default: "180px", [stacked]: "100%" },
   },
-  spacer: { flex: { default: 1, "@media (max-width: 780px)": 0 } },
+  spacer: { flex: { default: 1, [stacked]: 0 } },
   body: {
     display: "grid",
     // minmax(0, 1fr) and not 1fr: a grid column defaults to its content's
