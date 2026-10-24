@@ -115,6 +115,12 @@ export function DecisionDrawer({
           areas={areas.map(({ name }) => name)}
           onDirtyChange={onDirtyChange}
           onCancel={() => onView(decision.id)}
+          onDelete={() => {
+            // Nothing to confirm. The drawer closes on its own once the
+            // decision is gone, and the toast holds the way back.
+            onDelete(decision.id);
+            toast(`Deleted “${decision.title}”`, { label: "Undo", run: onUndo });
+          }}
           onSubmit={(values) => {
             onSave({ ...decision, ...values });
             onView(decision.id);
@@ -129,7 +135,6 @@ export function DecisionDrawer({
           statuses={statuses}
           history={history}
           onChangeStatus={onChangeStatus}
-          onDelete={onDelete}
           onUndo={onUndo}
         />
       )}
