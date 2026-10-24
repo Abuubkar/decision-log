@@ -4,8 +4,10 @@ import { Text } from "@/components/Text";
 import { StatusDot } from "@/pages/demo/StatusDot";
 import { historyFor, historyRows } from "@/domain/changes";
 import { formatDecidedOn } from "@/domain/decisions";
+import { statusById } from "@/domain/statuses";
 import { SEED } from "@/domain/seed";
 import { SEED_CHANGES } from "@/domain/seedChanges";
+import { DEFAULT_STATUSES } from "@/domain/types";
 import type { Decision } from "@/domain/types";
 import { styles } from "../landing.styles";
 
@@ -35,7 +37,7 @@ export function Specimen({ decision, caption }: { decision: Decision; caption: s
 
       <Box style={styles.cardBody}>
         <Text as="h2" variant="heading" style={styles.cardTitle}>
-          <StatusDot status={decision.status} />
+          <StatusDot status={statusById(DEFAULT_STATUSES, decision.status)} />
           {decision.title}
         </Text>
         <Box style={styles.field}>
@@ -48,15 +50,20 @@ export function Specimen({ decision, caption }: { decision: Decision; caption: s
         </Box>
         <Box style={styles.cardMeta}>
           <span>Decided {formatDecidedOn(decision.decidedOn)}</span>
-          <span {...stylex.props(styles.cardStatus, styles[decision.status])}>
-            {decision.status}
+          <span
+            {...stylex.props(
+              styles.cardStatus,
+              styles[statusById(DEFAULT_STATUSES, decision.status).tone],
+            )}
+          >
+            {statusById(DEFAULT_STATUSES, decision.status).label}
           </span>
         </Box>
       </Box>
 
       <Box style={styles.cardHistory}>
         {history.map((change) =>
-          historyRows(change).map((row) => (
+          historyRows(change, DEFAULT_STATUSES).map((row) => (
             <Box key={row.key} style={styles.cardEvent}>
               <Text variant="small" tone="faint">
                 {formatDecidedOn(change.at)} &middot; {change.by}

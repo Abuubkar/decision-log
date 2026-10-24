@@ -4,8 +4,9 @@ import { mayRemoveArea } from "@/domain/areas";
 import { withStatus } from "@/domain/decisions";
 import { SEED } from "@/domain/seed";
 import { SEED_CHANGES } from "@/domain/seedChanges";
-import { DEFAULT_AREAS } from "@/domain/types";
-import type { Area, Decision, Status } from "@/domain/types";
+import { whyStatusStays } from "@/domain/statuses";
+import { ACTIVE, DEFAULT_AREAS, DEFAULT_STATUSES } from "@/domain/types";
+import type { Area, Decision, Status, StatusId, Tone } from "@/domain/types";
 import type { SavedLog } from "./storage";
 
 export type LogData = {
@@ -13,6 +14,8 @@ export type LogData = {
   changes: Change[];
   /** Areas someone kept. The list the log shows adds the ones in use. */
   areas: Area[];
+  /** What a decision can be. Renaming one never touches a decision. */
+  statuses: Status[];
 };
 
 export type LogState = LogData & {
@@ -33,11 +36,15 @@ export type LogState = LogData & {
 
 export type LogAction =
   | { type: "save"; decision: Decision }
-  | { type: "setStatus"; id: string; status: Status }
+  | { type: "setStatus"; id: string; status: StatusId }
   | { type: "delete"; id: string }
   | { type: "deleteAll" }
   | { type: "addArea"; name: Area }
   | { type: "removeArea"; name: Area }
+  | { type: "renameArea"; from: Area; to: Area }
+  | { type: "addStatus"; label: string; tone: Tone; holds: boolean }
+  | { type: "editStatus"; id: StatusId; label: string; tone: Tone; holds: boolean }
+  | { type: "removeStatus"; id: StatusId }
   | { type: "undo" }
   | { type: "reset" }
   | { type: "restore"; saved: SavedLog }
@@ -48,6 +55,7 @@ export function initialLog(): LogState {
     decisions: SEED,
     changes: SEED_CHANGES,
     areas: DEFAULT_AREAS,
+    statuses: DEFAULT_STATUSES,
     undo: null,
     touched: false,
     refusal: null,
@@ -60,6 +68,7 @@ const snapshot = (state: LogState, label: string) => ({
   decisions: state.decisions,
   changes: state.changes,
   areas: state.areas,
+  statuses: state.statuses,
 });
 
 /** Every action that writes marks the log as someone's own and clears the refusal. */
@@ -155,10 +164,62 @@ export function logReducer(state: LogState, action: LogAction): LogState {
       };
     }
 
+    /** Renaming an area moves every decision filed under it, in one step. */
+    case "renameArea": {
+      const to = action.to.trim();
+      if (!to || to === action.from) return state;
+      return {
+        ...state,
+        ...wrote(state, `renaming ${action.from}`),
+        areas: state.areas.map((name) => (name === action.from ? to : name)),
+        decisions: state.decisions.map((decision) =>
+          decision.area === action.from ? { ...decision, area: to } : decision,
+        ),
+      };
+    }
+
+    case "addStatus": {
+      const label = action.label.trim();
+      if (!label) return state;
+      return {
+        ...state,
+        ...wrote(state, `adding ${label}`),
+        statuses: [
+          ...state.statuses,
+          { id: crypto.randomUUID(), label, tone: action.tone, holds: action.holds },
+        ],
+      };
+    }
+
+    /** The id never moves, so no decision and no change has to be rewritten. */
+    case "editStatus": {
+      const label = action.label.trim();
+      if (!label) return state;
+      return {
+        ...state,
+        ...wrote(state, `editing ${label}`),
+        statuses: state.statuses.map((status) =>
+          status.id === action.id
+            ? { ...status, label, tone: action.tone, holds: status.id === ACTIVE || action.holds }
+            : status,
+        ),
+      };
+    }
+
+    case "removeStatus": {
+      const why = whyStatusStays(state.statuses, state.decisions, action.id);
+      if (why) return { ...state, refusal: why };
+      return {
+        ...state,
+        ...wrote(state, "removing that status"),
+        statuses: state.statuses.filter((status) => status.id !== action.id),
+      };
+    }
+
     case "undo": {
       if (!state.undo) return state;
-      const { decisions, changes, areas } = state.undo;
-      return { ...state, decisions, changes, areas, undo: null, refusal: null };
+      const { decisions, changes, areas, statuses } = state.undo;
+      return { ...state, decisions, changes, areas, statuses, undo: null, refusal: null };
     }
 
     /** Reset means reset, so the log goes back to being nobody's. */
@@ -171,6 +232,7 @@ export function logReducer(state: LogState, action: LogAction): LogState {
         decisions: action.saved.decisions,
         changes: action.saved.changes,
         areas: action.saved.areas,
+        statuses: action.saved.statuses,
         touched: action.saved.touched,
       };
 

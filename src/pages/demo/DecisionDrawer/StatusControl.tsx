@@ -2,46 +2,49 @@ import * as stylex from "@stylexjs/stylex";
 import { Button } from "@/components/Button";
 import { Text } from "@/components/Text";
 import { useToast } from "@/components/Toast";
-import { STATUSES } from "@/domain/types";
-import type { Decision, Status } from "@/domain/types";
-import { HINTS } from "./decisionDrawer.copy";
+import { statusById } from "@/domain/statuses";
+import type { Decision, Status, StatusId } from "@/domain/types";
+import { hintFor } from "./decisionDrawer.copy";
 import { styles } from "./decisionDrawer.styles";
-
-const label = (status: Status) => status[0]!.toUpperCase() + status.slice(1);
 
 type Props = {
   decision: Decision;
-  onChangeStatus: (id: string, status: Status) => void;
+  statuses: Status[];
+  onChangeStatus: (id: string, status: StatusId) => void;
   onUndo: () => void;
 };
 
 /** Changing a status confirms itself, and offers the way back. */
-export function StatusControl({ decision, onChangeStatus, onUndo }: Props) {
+export function StatusControl({ decision, statuses, onChangeStatus, onUndo }: Props) {
   const toast = useToast();
+  const current = statusById(statuses, decision.status);
 
   function change(next: Status) {
-    if (decision.status === next) return;
-    onChangeStatus(decision.id, next);
-    toast(`Marked “${decision.title}” ${next}`, { label: "Undo", run: onUndo });
+    if (decision.status === next.id) return;
+    onChangeStatus(decision.id, next.id);
+    toast(`Marked “${decision.title}” ${next.label.toLowerCase()}`, {
+      label: "Undo",
+      run: onUndo,
+    });
   }
 
   return (
     <div {...stylex.props(styles.section)}>
       <Text variant="label">Status</Text>
       <div {...stylex.props(styles.segment)} role="group" aria-label="Status">
-        {STATUSES.map((status) => (
+        {statuses.map((status) => (
           <Button
-            key={status}
+            key={status.id}
             onClick={() => change(status)}
-            aria-pressed={decision.status === status}
-            style={[styles.option, decision.status === status && styles.chosen]}
+            aria-pressed={decision.status === status.id}
+            style={[styles.option, decision.status === status.id && styles.chosen]}
           >
-            {label(status)}
+            {status.label}
           </Button>
         ))}
       </div>
       <Text variant="small" tone="muted" style={styles.hint}>
-        {HINTS[decision.status]}
+        {hintFor(current)}
       </Text>
     </div>
   );

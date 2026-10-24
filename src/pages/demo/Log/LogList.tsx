@@ -36,7 +36,7 @@ export function LogList({ log }: LogProps) {
                 <span {...stylex.props(styles.rule)} />
               </Box>
             )}
-            <DecisionRow decision={decision} onOpen={log.view} />
+            <DecisionRow decision={decision} status={log.statusOf(decision)} onOpen={log.view} />
           </Fragment>
         );
       })}

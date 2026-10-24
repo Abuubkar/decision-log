@@ -10,11 +10,15 @@ export const colors = stylex.defineVars({
   rule: "#e4ddd1",
   ruleStrong: "#cfc6b6",
   accent: "#34506b",
-  // One colour per status. Muted on purpose: a log of settled decisions
-  // should not read like a dashboard of alarms.
+  // One colour per tone a status can wear. Muted on purpose: a log of settled
+  // decisions should not read like a dashboard of alarms. The first three keep
+  // their old names because the rest of the app reads reversed as its danger
+  // red and active as its green.
   active: "#3e6b4f",
   superseded: "#8a6d3b",
   reversed: "#8c4a45",
+  slate: "#5c6670",
+  blue: "#34506b",
 });
 
 const narrow = "@media (max-width: 780px)";

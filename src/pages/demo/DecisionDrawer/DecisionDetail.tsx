@@ -3,7 +3,7 @@ import { Fragment } from "react";
 import { Text } from "@/components/Text";
 import { formatDecidedOn } from "@/domain/decisions";
 import type { Change } from "@/domain/changes";
-import type { Decision, Status } from "@/domain/types";
+import type { Decision, Status, StatusId } from "@/domain/types";
 import { ChangeHistory } from "./ChangeHistory";
 import { DeleteControl } from "./DeleteControl";
 import { StatusControl } from "./StatusControl";
@@ -11,13 +11,21 @@ import { styles } from "./decisionDrawer.styles";
 
 type Props = {
   decision: Decision;
+  statuses: Status[];
   history: Change[];
-  onChangeStatus: (id: string, status: Status) => void;
+  onChangeStatus: (id: string, status: StatusId) => void;
   onDelete: (id: string) => void;
   onUndo: () => void;
 };
 
-export function DecisionDetail({ decision, history, onChangeStatus, onDelete, onUndo }: Props) {
+export function DecisionDetail({
+  decision,
+  statuses,
+  history,
+  onChangeStatus,
+  onDelete,
+  onUndo,
+}: Props) {
   const rows = [
     { term: "Decided", value: decision.statement, muted: false },
     { term: "Because", value: decision.rationale, muted: true },
@@ -43,8 +51,13 @@ export function DecisionDetail({ decision, history, onChangeStatus, onDelete, on
           </Fragment>
         ))}
       </dl>
-      <StatusControl decision={decision} onChangeStatus={onChangeStatus} onUndo={onUndo} />
-      <ChangeHistory history={history} />
+      <StatusControl
+        decision={decision}
+        statuses={statuses}
+        onChangeStatus={onChangeStatus}
+        onUndo={onUndo}
+      />
+      <ChangeHistory history={history} statuses={statuses} />
       <DeleteControl decision={decision} onDelete={onDelete} onUndo={onUndo} />
     </>
   );

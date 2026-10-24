@@ -1,20 +1,20 @@
 import * as stylex from "@stylexjs/stylex";
 import { Box } from "@/components/Box";
 import { Text } from "@/components/Text";
-import { formatDecidedOn, stillHolds } from "@/domain/decisions";
+import { formatDecidedOn } from "@/domain/decisions";
 import { StatusDot } from "../StatusDot";
 import { styles } from "./decisionRow.styles";
 import type { DecisionRowProps } from "./decisionRow.types";
 
-export function DecisionRow({ decision, onOpen }: DecisionRowProps) {
-  const past = !stillHolds(decision);
+export function DecisionRow({ decision, status, onOpen }: DecisionRowProps) {
+  const past = !status.holds;
   return (
     <Box
       as="button"
       type="button"
       onClick={() => onOpen(decision.id)}
       style={styles.row}
-      aria-label={`${decision.title}, ${decision.status}`}
+      aria-label={`${decision.title}, ${status.label}`}
     >
       <div>
         <Text
@@ -23,7 +23,7 @@ export function DecisionRow({ decision, onOpen }: DecisionRowProps) {
           tone={past ? "faint" : "default"}
           style={[styles.title, past && styles.quiet]}
         >
-          <StatusDot status={decision.status} />
+          <StatusDot status={status} />
           {decision.title}
         </Text>
         <Text tone={past ? "faint" : "default"}>{decision.statement}</Text>
@@ -36,7 +36,7 @@ export function DecisionRow({ decision, onOpen }: DecisionRowProps) {
         <span>
           {decision.owner} &middot; {decision.area}
         </span>
-        <span {...stylex.props(styles.status, styles[decision.status])}>{decision.status}</span>
+        <span {...stylex.props(styles.status, styles[status.tone])}>{status.label}</span>
       </div>
     </Box>
   );

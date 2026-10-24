@@ -13,7 +13,8 @@ type Props = {
 
 /**
  * Deleting is for a decision that should not have been written down. One the
- * team made and later moved away from is superseded or reversed, and stays.
+ * team made and later moved away from goes into a status that stops holding,
+ * and stays in the log.
  * There is no confirmation because the undo is the confirmation, and it keeps
  * the history that went with it.
  */
@@ -25,7 +26,7 @@ export function DeleteControl({ decision, onDelete, onUndo }: Props) {
       <Text variant="label">Delete</Text>
       <Text variant="small" tone="muted" style={styles.hint}>
         For something recorded by mistake. A decision the team moved away from belongs in the log,
-        marked superseded or reversed.
+        in a status that says it stopped holding.
       </Text>
       <Button
         style={styles.delete}

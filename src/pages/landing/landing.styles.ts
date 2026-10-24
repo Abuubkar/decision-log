@@ -148,8 +148,11 @@ export const styles = stylex.create({
     color: colors.inkMuted,
   },
   cardStatus: { fontSize: type.label, letterSpacing: "0.08em", textTransform: "uppercase" },
-  active: { color: colors.active },
-  superseded: { color: colors.superseded },
+  green: { color: colors.active },
+  amber: { color: colors.superseded },
+  red: { color: colors.reversed },
+  slate: { color: colors.slate },
+  blue: { color: colors.blue },
   reversed: { color: colors.reversed },
   cardHistory: {
     borderTopWidth: "1px",

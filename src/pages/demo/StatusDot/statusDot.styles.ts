@@ -9,9 +9,14 @@ export const styles = stylex.create({
     borderRadius: "50%",
     borderWidth: "1.5px",
     borderStyle: "solid",
+    backgroundColor: "transparent",
   },
-  active: { backgroundColor: colors.active, borderColor: colors.active },
-  // A decision that stopped holding keeps its place and loses its fill.
-  superseded: { backgroundColor: "transparent", borderColor: colors.superseded },
-  reversed: { backgroundColor: "transparent", borderColor: colors.reversed },
+  // A decision that stopped holding keeps its place and loses its fill, so the
+  // dot says whether it holds before the colour says which status it is in.
+  filled: { backgroundColor: "currentColor" },
+  green: { color: colors.active, borderColor: colors.active },
+  amber: { color: colors.superseded, borderColor: colors.superseded },
+  red: { color: colors.reversed, borderColor: colors.reversed },
+  slate: { color: colors.slate, borderColor: colors.slate },
+  blue: { color: colors.blue, borderColor: colors.blue },
 });
