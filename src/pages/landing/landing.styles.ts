@@ -88,6 +88,9 @@ export const styles = stylex.create({
     overflow: "hidden",
     boxShadow: "0 18px 50px rgba(27, 24, 21, 0.10)",
   },
+  // A picture is inline by default, so an image inside it asking for 100% has
+  // nothing to be 100% of and collapses to nothing.
+  shotPicture: { display: "block", width: "100%" },
   shot: { display: "block", width: "100%", height: "auto" },
   caption: { marginTop: space.md },
   // Heading in a fixed left column, ruled term and definition rows on the right.
