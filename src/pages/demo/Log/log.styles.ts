@@ -55,13 +55,18 @@ export const styles = stylex.create({
   spacer: { flex: { default: 1, [fills]: 0 } },
   create: {
     flexShrink: 0,
-    // Square once the words are gone, and 44px under a finger.
-    paddingInline: { default: space.base, [markOnly]: 0 },
-    width: { default: "auto", [markOnly]: "44px" },
-    height: { default: "auto", [markOnly]: "44px" },
     justifyContent: "center",
+    /**
+     * Once it is a mark it has to be the search field's own size, not its own.
+     * Both carry the same box: space.sm top and bottom, a 1px border, and a
+     * 20px line in the middle. Giving the mark that same 20px line and the same
+     * padding on all four sides makes it exactly as tall as the field, and
+     * square. A stretched height with an aspect ratio does not work here,
+     * because a flex item takes its width from its content first.
+     */
+    paddingInline: { default: space.base, [markOnly]: space.sm },
   },
-  createMark: { display: { default: "none", [markOnly]: "block" } },
+  createMark: { display: { default: "none", [markOnly]: "block" }, width: "20px", height: "20px" },
   createWords: { display: { default: "inline", [markOnly]: "none" } },
   body: {
     display: "grid",

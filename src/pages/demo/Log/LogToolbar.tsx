@@ -31,17 +31,12 @@ export function LogToolbar({ log }: LogProps) {
       >
         {/* The words go on a phone and the mark stands in for them, so the
             search keeps the row it would otherwise have to itself. */}
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          aria-hidden="true"
-          {...stylex.props(styles.createMark)}
-        >
+        <svg viewBox="0 0 15 15" aria-hidden="true" {...stylex.props(styles.createMark)}>
+          <circle cx="6.4" cy="6.4" r="4.4" stroke="currentColor" strokeWidth="1.6" fill="none" />
           <path
-            d="M7 1.5v11M1.5 7h11"
+            d="M9.7 9.7 13.2 13.2"
             stroke="currentColor"
-            strokeWidth="1.8"
+            strokeWidth="1.6"
             strokeLinecap="round"
           />
         </svg>
