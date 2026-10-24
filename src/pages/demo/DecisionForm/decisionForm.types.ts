@@ -16,6 +16,8 @@ export type DecisionFormProps = {
   areas: Area[];
   onSubmit: (values: DecisionValues) => void;
   onCancel: () => void;
+  /** Absent while adding, because there is nothing yet to delete. */
+  onDelete?: () => void;
   /**
    * Called as the form becomes dirty and clean again, so whatever is holding
    * the form can refuse to throw the typing away.

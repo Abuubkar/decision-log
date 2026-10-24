@@ -1,3 +1,4 @@
+import * as stylex from "@stylexjs/stylex";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Box } from "@/components/Box";
@@ -16,6 +17,7 @@ export function DecisionForm({
   areas,
   onSubmit,
   onCancel,
+  onDelete,
   onDirtyChange,
 }: DecisionFormProps) {
   const {
@@ -110,6 +112,26 @@ export function DecisionForm({
       </Box>
 
       <Box style={styles.actions}>
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            aria-label="Delete this decision"
+            title="Delete this decision"
+            {...stylex.props(styles.delete)}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
+              <path
+                d="M2.5 3.5h10M6 3.5V2h3v1.5M3.8 3.5l.6 9a1 1 0 0 0 1 .9h4.2a1 1 0 0 0 1-.9l.6-9M6.2 6v5M8.8 6v5"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          </button>
+        )}
         <Button onClick={onCancel}>Cancel</Button>
         <Button type="submit" variant="primary">
           {decision ? "Save" : "Add decision"}

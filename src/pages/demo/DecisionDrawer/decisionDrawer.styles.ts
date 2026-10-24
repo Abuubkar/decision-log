@@ -25,11 +25,6 @@ export const styles = stylex.create({
     outlineOffset: "2px",
   },
   heading: { marginTop: space.md },
-  delete: {
-    marginTop: space.md,
-    borderColor: { default: colors.rule, ":hover": colors.reversed },
-    color: { default: colors.inkMuted, ":hover": colors.reversed },
-  },
   list: {
     display: "grid",
     gridTemplateColumns: { default: "96px 1fr", "@media (max-width: 780px)": "1fr" },

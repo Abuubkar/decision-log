@@ -5,7 +5,6 @@ import { formatDecidedOn } from "@/domain/decisions";
 import type { Change } from "@/domain/changes";
 import type { Decision, Status, StatusId } from "@/domain/types";
 import { ChangeHistory } from "./ChangeHistory";
-import { DeleteControl } from "./DeleteControl";
 import { StatusControl } from "./StatusControl";
 import { styles } from "./decisionDrawer.styles";
 
@@ -14,18 +13,10 @@ type Props = {
   statuses: Status[];
   history: Change[];
   onChangeStatus: (id: string, status: StatusId) => void;
-  onDelete: (id: string) => void;
   onUndo: () => void;
 };
 
-export function DecisionDetail({
-  decision,
-  statuses,
-  history,
-  onChangeStatus,
-  onDelete,
-  onUndo,
-}: Props) {
+export function DecisionDetail({ decision, statuses, history, onChangeStatus, onUndo }: Props) {
   const rows = [
     { term: "Decided", value: decision.statement, muted: false },
     { term: "Because", value: decision.rationale, muted: true },
@@ -58,7 +49,6 @@ export function DecisionDetail({
         onUndo={onUndo}
       />
       <ChangeHistory history={history} statuses={statuses} />
-      <DeleteControl decision={decision} onDelete={onDelete} onUndo={onUndo} />
     </>
   );
 }
