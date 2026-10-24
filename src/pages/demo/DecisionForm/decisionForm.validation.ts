@@ -1,5 +1,5 @@
 import { today } from "@/domain/decisions";
-import { AREAS } from "@/domain/types";
+import type { Area } from "@/domain/types";
 import type { DecisionValues } from "./decisionForm.types";
 
 /** A title that runs long stops being a title, and a rationale has an end. */
@@ -18,11 +18,11 @@ export const RULES = {
   area: { required: "Pick an area." },
 };
 
-export const emptyDecision = (): DecisionValues => ({
+export const emptyDecision = (area: Area): DecisionValues => ({
   title: "",
   statement: "",
   rationale: "",
   decidedOn: today(),
   owner: "",
-  area: AREAS[0],
+  area,
 });

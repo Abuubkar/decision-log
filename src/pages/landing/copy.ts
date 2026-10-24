@@ -39,4 +39,4 @@ export const CLOSING = {
 };
 
 export const FOOTER =
-  "Decision Log is a demonstration. Everything you type stays in your browser and goes away when you refresh.";
+  "Decision Log keeps your log in your browser, on your machine. Nothing is uploaded and there is no account to make.";

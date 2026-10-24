@@ -5,6 +5,7 @@ export const HEADINGS: Record<DrawerMode, string> = {
   view: "Decision",
   edit: "Edit decision",
   create: "New decision",
+  areas: "Areas",
 };
 
 /** Teaches the vocabulary at the moment someone needs it. */

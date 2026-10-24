@@ -6,7 +6,9 @@ when, and whether it still holds.
 Live at **https://abuubkar.github.io/decision-log/**. The demo is at
 [/demo.html](https://abuubkar.github.io/decision-log/demo.html).
 
-Nothing is saved. The demo opens on seeded data and a refresh puts it back.
+The log is kept in your browser, on your machine, and goes nowhere else. It
+opens on a seeded log the first time. Reset demo puts that seed back and forgets
+everything else.
 
 ## Running it
 

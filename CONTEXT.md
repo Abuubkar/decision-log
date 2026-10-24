@@ -41,6 +41,12 @@ _Avoid_: Replaced, outdated, archived
 The Decision turned out to be wrong and the team went back on it.
 _Avoid_: Undone, cancelled, rejected, revoked
 
+**Delete**:
+Removing a Decision from the Log altogether, for something that should never
+have been recorded. A Decision the team made and later moved away from keeps its
+place and becomes Superseded or Reversed.
+_Avoid_: Archive, remove, trash
+
 **Change**:
 Something that happened to a Decision after it was written down. Exactly one of
 Created, Edited or Status.
@@ -52,7 +58,8 @@ _Avoid_: Author, creator, assignee, decider
 
 **Area**:
 The part of the business a Decision belongs to, such as Product or Hiring. A
-Decision has exactly one.
+Decision has exactly one. A team keeps its own list and adds to it, and an Area
+that Decisions are filed under stays until they are not.
 _Avoid_: Tag, category, label, topic
 
 **Decided on**:

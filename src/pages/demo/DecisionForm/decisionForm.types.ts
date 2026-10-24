@@ -12,6 +12,8 @@ export type DecisionValues = {
 export type DecisionFormProps = {
   /** Absent when adding a decision rather than editing one. */
   decision?: Decision;
+  /** Every area the log knows, in the order the picker shows them. */
+  areas: Area[];
   onSubmit: (values: DecisionValues) => void;
   onCancel: () => void;
   /**
