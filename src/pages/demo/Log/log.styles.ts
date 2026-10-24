@@ -9,12 +9,13 @@ import { colors, radii, space, type } from "@/tokens.stylex";
 const touch = "@media (pointer: coarse)";
 
 /**
- * The toolbar breaks later than the rest of the log. The sidebar has to fold at
- * 780px, but the search and New decision sit side by side comfortably well below
- * that, and a tablet at 768px has room to spare. They only stack once the search
- * would be squeezed under its own placeholder.
+ * The toolbar keeps one row at every width. Below the first the search stops
+ * being capped and takes whatever the row has left, because a tablet has no
+ * reason to hold the search to a desktop's measure. Below the second the button
+ * drops its words for a mark, which is the only way both still fit on a phone.
  */
-const stacked = "@media (max-width: 560px)";
+const fills = "@media (max-width: 900px)";
+const markOnly = "@media (max-width: 560px)";
 
 export const styles = stylex.create({
   frame: {
@@ -43,16 +44,25 @@ export const styles = stylex.create({
     borderBottomColor: colors.rule,
     backgroundColor: colors.paperSunk,
   },
-  // On a phone the search takes its own row. Sharing one with the button left it
-  // pinned at its minimum, exactly one character short of its own placeholder.
-  // Its minimum is wide enough for that placeholder now, so the row holds
-  // together down to where it genuinely runs out of width.
   search: {
     flex: 1,
-    maxWidth: { default: "340px", [stacked]: "none" },
-    minWidth: { default: "180px", [stacked]: "100%" },
+    maxWidth: { default: "340px", [fills]: "none" },
+    // Wide enough for its own placeholder, which is what it was a character
+    // short of before.
+    minWidth: "180px",
   },
-  spacer: { flex: { default: 1, [stacked]: 0 } },
+  // Only a desktop has room to spare, so only a desktop gives any away.
+  spacer: { flex: { default: 1, [fills]: 0 } },
+  create: {
+    flexShrink: 0,
+    // Square once the words are gone, and 44px under a finger.
+    paddingInline: { default: space.base, [markOnly]: 0 },
+    width: { default: "auto", [markOnly]: "44px" },
+    height: { default: "auto", [markOnly]: "44px" },
+    justifyContent: "center",
+  },
+  createMark: { display: { default: "none", [markOnly]: "block" } },
+  createWords: { display: { default: "inline", [markOnly]: "none" } },
   body: {
     display: "grid",
     // minmax(0, 1fr) and not 1fr: a grid column defaults to its content's

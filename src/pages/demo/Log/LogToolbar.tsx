@@ -23,8 +23,29 @@ export function LogToolbar({ log }: LogProps) {
         </Button>
       )}
       <span {...stylex.props(styles.spacer)} />
-      <Button variant="primary" onClick={log.create}>
-        New decision
+      <Button
+        variant="primary"
+        onClick={log.create}
+        aria-label="New decision"
+        style={styles.create}
+      >
+        {/* The words go on a phone and the mark stands in for them, so the
+            search keeps the row it would otherwise have to itself. */}
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          aria-hidden="true"
+          {...stylex.props(styles.createMark)}
+        >
+          <path
+            d="M7 1.5v11M1.5 7h11"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span {...stylex.props(styles.createWords)}>New decision</span>
       </Button>
     </Box>
   );
