@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { areaExists, areasInLog, countByArea } from "@/domain/areas";
 import { historyFor } from "@/domain/changes";
-import { byNewest, countByStatus, matchesQuery } from "@/domain/decisions";
-import type { Area, Decision, Status } from "@/domain/types";
+import { byNewest, matchesQuery } from "@/domain/decisions";
+import { countByStatus, statusById } from "@/domain/statuses";
+import type { Area, Decision, StatusId, Tone } from "@/domain/types";
 import type { AreaFilter, DrawerState, StatusFilter } from "./log.types";
 import { initialLog, logReducer } from "./logReducer";
 import { forgetLog, loadLog, saveLog } from "./storage";
@@ -48,7 +49,7 @@ export function useLog() {
       log.decisions
         .filter(
           (decision) =>
-            (status === "all" || decision.status === status) &&
+            (status === null || decision.status === status) &&
             (area === null || decision.area === area) &&
             matchesQuery(decision, query),
         )
@@ -65,21 +66,21 @@ export function useLog() {
     const pool = log.decisions.filter(
       (decision) => (area === null || decision.area === area) && matchesQuery(decision, query),
     );
-    return { all: pool.length, ...countByStatus(pool) };
+    return { all: pool.length, byStatus: countByStatus(pool) };
   }, [log.decisions, area, query]);
 
   const areaCounts = useMemo(() => {
     const pool = log.decisions.filter(
       (decision) =>
-        (status === "all" || decision.status === status) && matchesQuery(decision, query),
+        (status === null || decision.status === status) && matchesQuery(decision, query),
     );
     return { all: pool.length, byArea: countByArea(pool) };
   }, [log.decisions, status, query]);
 
-  const filtersApplied = status !== "all" || area !== null || query.trim() !== "";
+  const filtersApplied = status !== null || area !== null || query.trim() !== "";
 
   const clearFilters = useCallback(() => {
-    setStatus("all");
+    setStatus(null);
     setArea(null);
     setQuery("");
   }, []);
@@ -107,14 +108,15 @@ export function useLog() {
       decisions: log.decisions,
       changes: log.changes,
       areas: log.areas,
+      statuses: log.statuses,
     });
-  }, [log.touched, log.decisions, log.changes, log.areas]);
+  }, [log.touched, log.decisions, log.changes, log.areas, log.statuses]);
 
   const resetDemo = useCallback(() => {
     forgetLog();
     dispatch({ type: "reset" });
     setDrawer(null);
-    setStatus("all");
+    setStatus(null);
     setArea(null);
     setQuery("");
   }, []);
@@ -122,6 +124,11 @@ export function useLog() {
   return {
     decisions: log.decisions,
     areas,
+    statuses: log.statuses,
+    statusOf: useCallback(
+      (decision: Decision) => statusById(log.statuses, decision.status),
+      [log.statuses],
+    ),
     filtered,
     statusCounts,
     areaCounts,
@@ -141,19 +148,34 @@ export function useLog() {
     resetDemo,
     save: useCallback((decision: Decision) => dispatch({ type: "save", decision }), []),
     changeStatus: useCallback(
-      (id: string, status: Status) => dispatch({ type: "setStatus", id, status }),
+      (id: string, status: StatusId) => dispatch({ type: "setStatus", id, status }),
       [],
     ),
     remove: useCallback((id: string) => dispatch({ type: "delete", id }), []),
     removeAll: useCallback(() => dispatch({ type: "deleteAll" }), []),
     addArea: useCallback((name: Area) => dispatch({ type: "addArea", name }), []),
     removeArea: useCallback((name: Area) => dispatch({ type: "removeArea", name }), []),
+    renameArea: useCallback(
+      (from: Area, to: Area) => dispatch({ type: "renameArea", from, to }),
+      [],
+    ),
+    addStatus: useCallback(
+      (label: string, tone: Tone, holds: boolean) =>
+        dispatch({ type: "addStatus", label, tone, holds }),
+      [],
+    ),
+    editStatus: useCallback(
+      (id: StatusId, label: string, tone: Tone, holds: boolean) =>
+        dispatch({ type: "editStatus", id, label, tone, holds }),
+      [],
+    ),
+    removeStatus: useCallback((id: StatusId) => dispatch({ type: "removeStatus", id }), []),
     clearRefusal: useCallback(() => dispatch({ type: "clearRefusal" }), []),
     undo: useCallback(() => dispatch({ type: "undo" }), []),
     view: useCallback((id: string) => setDrawer({ mode: "view", id }), []),
     edit: useCallback((id: string) => setDrawer({ mode: "edit", id }), []),
     create: useCallback(() => setDrawer({ mode: "create" }), []),
-    manageAreas: useCallback(() => setDrawer({ mode: "areas" }), []),
+    openSettings: useCallback(() => setDrawer({ mode: "settings" }), []),
     closeDrawer: useCallback(() => setDrawer(null), []),
   };
 }

@@ -28,25 +28,16 @@ function App() {
 
   return (
     <Box style={styles.page}>
-      <AppBar
-        onManageAreas={log.manageAreas}
-        onDeleteAll={() => {
-          if (log.decisions.length === 0) return;
-          const count = log.decisions.length;
-          log.removeAll();
-          toast(`Deleted ${count} decisions`, { label: "Undo", run: log.undo });
-        }}
-        onReset={() => {
-          log.resetDemo();
-          toast("Back to the seeded log");
-        }}
-      />
+      <AppBar onOpenSettings={log.openSettings} />
       <Log log={log} />
       <DecisionDrawer
         drawer={log.drawer}
         decision={log.open}
         areas={log.areas}
         areaCounts={log.areaCounts.byArea}
+        statuses={log.statuses}
+        statusCounts={log.statusCounts.byStatus}
+        decisionCount={log.decisions.length}
         onClose={log.closeDrawer}
         onEdit={log.edit}
         onView={log.view}
@@ -54,7 +45,28 @@ function App() {
         onDelete={log.remove}
         onSave={log.save}
         onAddArea={log.addArea}
+        onRenameArea={log.renameArea}
         onRemoveArea={log.removeArea}
+        onAddStatus={log.addStatus}
+        onEditStatus={log.editStatus}
+        onRemoveStatus={log.removeStatus}
+        onDeleteAll={() => {
+          const count = log.decisions.length;
+          log.removeAll();
+          toast(`Deleted ${count} ${count === 1 ? "decision" : "decisions"}`, {
+            label: "Undo",
+            run: log.undo,
+          });
+        }}
+        onResetDemo={() => {
+          // The one action with nothing behind it: it forgets the save too.
+          const sure = window.confirm(
+            "This forgets everything in this browser and puts the sample log back. There is no undo.",
+          );
+          if (!sure) return;
+          log.resetDemo();
+          toast("Back to the seeded log");
+        }}
         onUndo={log.undo}
         history={log.history}
       />

@@ -1,5 +1,6 @@
 import { formatDecidedOn, today } from "./decisions";
-import type { Decision, Status } from "./types";
+import { statusById } from "./statuses";
+import type { Decision, Status, StatusId } from "./types";
 
 export type ChangeKind = "created" | "edited" | "status";
 
@@ -15,9 +16,9 @@ export type Change = {
   by: string;
   /** Edits only: the fields that actually moved, and what they moved between. */
   fields?: FieldChange[];
-  /** Status changes only. */
-  from?: Status;
-  to?: Status;
+  /** Status changes only. Ids, so a renamed status keeps its history. */
+  from?: StatusId;
+  to?: StatusId;
 };
 
 /** Nobody is signed in, so a change you make says so rather than borrowing a name. */
@@ -57,7 +58,7 @@ export function edited(decisionId: string, fields: FieldChange[], by = YOU): Cha
   return { id: crypto.randomUUID(), decisionId, kind: "edited", at: today(), by, fields };
 }
 
-export function statusChanged(decisionId: string, from: Status, to: Status, by = YOU): Change {
+export function statusChanged(decisionId: string, from: StatusId, to: StatusId, by = YOU): Change {
   return { id: crypto.randomUUID(), decisionId, kind: "status", at: today(), by, from, to };
 }
 
@@ -73,23 +74,23 @@ export function historyFor(changes: Change[], decisionId: string) {
     .map((entry) => entry.change);
 }
 
-const capitalise = (word: string) => word[0]!.toUpperCase() + word.slice(1);
-
 export type HistoryRow = { key: string; label: string; from?: string; to?: string };
 
 /**
  * One row per field that moved, so an edit reads the same way a status change
  * does. A save that touched two fields produces two rows under one date.
  */
-export function historyRows(change: Change): HistoryRow[] {
+export function historyRows(change: Change, statuses: Status[]): HistoryRow[] {
   if (change.kind === "created") return [{ key: change.id, label: "Created" }];
   if (change.kind === "status") {
+    // Read through the current statuses, so a status renamed today reads the
+    // same way everywhere it ever appeared.
     return [
       {
         key: change.id,
         label: "Status",
-        from: capitalise(change.from ?? ""),
-        to: capitalise(change.to ?? ""),
+        from: change.from ? statusById(statuses, change.from).label : "",
+        to: change.to ? statusById(statuses, change.to).label : "",
       },
     ];
   }

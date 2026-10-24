@@ -1,5 +1,5 @@
 import type { Change } from "@/domain/changes";
-import type { Area, Decision } from "@/domain/types";
+import type { Area, Decision, Status } from "@/domain/types";
 
 const KEY = "decision-log";
 
@@ -16,6 +16,7 @@ export type SavedLog = {
   decisions: Decision[];
   changes: Change[];
   areas: Area[];
+  statuses: Status[];
 };
 
 const looksLikeALog = (value: unknown): value is SavedLog => {
@@ -26,7 +27,8 @@ const looksLikeALog = (value: unknown): value is SavedLog => {
     typeof log.touched === "boolean" &&
     Array.isArray(log.decisions) &&
     Array.isArray(log.changes) &&
-    Array.isArray(log.areas)
+    Array.isArray(log.areas) &&
+    Array.isArray(log.statuses)
   );
 };
 

@@ -1,27 +1,12 @@
-import type { Decision, Status } from "./types";
+import type { Decision, StatusId } from "./types";
 
 /** A log reads newest first. */
 export function byNewest(a: Decision, b: Decision) {
   return b.decidedOn.localeCompare(a.decidedOn);
 }
 
-/** Superseded and reversed decisions stay in the log, they just stop holding. */
-export function stillHolds(decision: Decision) {
-  return decision.status === "active";
-}
-
-export function withStatus(decision: Decision, status: Status): Decision {
+export function withStatus(decision: Decision, status: StatusId): Decision {
   return { ...decision, status };
-}
-
-export function countByStatus(decisions: Decision[]) {
-  return decisions.reduce(
-    (counts, decision) => {
-      counts[decision.status] += 1;
-      return counts;
-    },
-    { active: 0, superseded: 0, reversed: 0 } as Record<Status, number>,
-  );
 }
 
 /**

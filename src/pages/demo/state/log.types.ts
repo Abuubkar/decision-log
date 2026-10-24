@@ -1,6 +1,7 @@
-import type { Area, Status } from "@/domain/types";
+import type { Area, StatusId } from "@/domain/types";
 
-export type StatusFilter = Status | "all";
+/** Null is every status, matching the area filter. A string carries no sentinel. */
+export type StatusFilter = StatusId | null;
 
 /** Null is every area. An area is a string now, so it cannot carry a sentinel. */
 export type AreaFilter = Area | null;
@@ -9,7 +10,7 @@ export type AreaFilter = Area | null;
 export type DrawerState =
   | { mode: "view" | "edit"; id: string }
   | { mode: "create" }
-  | { mode: "areas" }
+  | { mode: "settings" }
   | null;
 
-export type DrawerMode = "view" | "edit" | "create" | "areas";
+export type DrawerMode = "view" | "edit" | "create" | "settings";

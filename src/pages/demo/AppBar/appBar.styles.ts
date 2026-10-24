@@ -11,22 +11,13 @@ export const styles = stylex.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    // Three controls and a title do not fit a phone on one line, and letting
-    // them squeeze wrapped the words inside the buttons. Two rows instead.
-    flexWrap: "wrap",
-    rowGap: space.sm,
     gap: space.base,
     maxWidth: "1120px",
     marginInline: "auto",
     paddingBlock: space.md,
     paddingInline: { default: space.lg, "@media (max-width: 780px)": space.base },
   },
-  actions: {
-    display: "flex",
-    alignItems: "center",
-    gap: space.sm,
-    marginLeft: { default: 0, "@media (max-width: 780px)": "auto" },
-  },
+  actions: { display: "flex", alignItems: "center", gap: space.sm },
   gear: {
     display: "inline-flex",
     alignItems: "center",
@@ -47,12 +38,7 @@ export const styles = stylex.create({
     outlineWidth: "2px",
     outlineOffset: "2px",
   },
-  destructive: {
-    color: { default: colors.inkMuted, ":hover": colors.reversed },
-    borderColor: { default: colors.ruleStrong, ":hover": colors.reversed },
-  },
   mark: {
-    flexBasis: { default: "auto", "@media (max-width: 780px)": "100%" },
     fontFamily: type.serif,
     fontSize: "20px",
     fontWeight: 600,

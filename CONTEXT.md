@@ -25,20 +25,25 @@ product exists.
 _Avoid_: Notes, context, justification, description
 
 **Status**:
-Where a Decision stands today. Exactly one of Active, Superseded or Reversed.
+Where a Decision stands today. A Decision is in exactly one. A team keeps its
+own list and renames or adds to it; a new Log starts with Active, Superseded and
+Reversed. Every Status says whether Decisions in it still hold, and the ones that
+do are the Log as it stands today.
 _Avoid_: State, stage, lifecycle
 
 **Active**:
-The Decision still holds. This is the state every Decision starts in.
+The Decision still holds. Every Log has this one and cannot lose it, because a
+Decision recorded today has to start somewhere.
 _Avoid_: Current, live, open
 
 **Superseded**:
 The Decision was replaced by a later, better one. The original reasoning was sound
-for its moment.
+for its moment. One of the three a Log starts with, and a team may rename it.
 _Avoid_: Replaced, outdated, archived
 
 **Reversed**:
-The Decision turned out to be wrong and the team went back on it.
+The Decision turned out to be wrong and the team went back on it. One of the three
+a Log starts with, and a team may rename it.
 _Avoid_: Undone, cancelled, rejected, revoked
 
 **Delete**:

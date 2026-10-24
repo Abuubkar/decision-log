@@ -1,15 +1,15 @@
 import * as stylex from "@stylexjs/stylex";
 import { Box } from "@/components/Box";
-import { Button } from "@/components/Button";
 import { Text } from "@/components/Text";
 import { styles } from "./appBar.styles";
 import type { AppBarProps } from "./appBar.types";
 
 /**
- * The three controls that act on the whole log rather than one decision. Reset
- * demo is last because it is the only one that cannot be taken back.
+ * One control. Everything that acts on the whole log is behind it, including
+ * the two that take something away, which have no business sitting a stray
+ * click from the log itself.
  */
-export function AppBar({ onManageAreas, onDeleteAll, onReset }: AppBarProps) {
+export function AppBar({ onOpenSettings }: AppBarProps) {
   return (
     <Box as="header" style={styles.bar}>
       <Box style={styles.inner}>
@@ -19,9 +19,9 @@ export function AppBar({ onManageAreas, onDeleteAll, onReset }: AppBarProps) {
         <Box style={styles.actions}>
           <button
             type="button"
-            onClick={onManageAreas}
-            aria-label="Areas"
-            title="Areas"
+            onClick={onOpenSettings}
+            aria-label="Settings"
+            title="Settings"
             {...stylex.props(styles.gear)}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -40,10 +40,6 @@ export function AppBar({ onManageAreas, onDeleteAll, onReset }: AppBarProps) {
               />
             </svg>
           </button>
-          <Button onClick={onDeleteAll} style={styles.destructive}>
-            Delete all
-          </Button>
-          <Button onClick={onReset}>Reset demo</Button>
         </Box>
       </Box>
     </Box>

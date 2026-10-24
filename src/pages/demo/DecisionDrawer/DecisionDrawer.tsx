@@ -5,8 +5,8 @@ import { Button } from "@/components/Button";
 import { Drawer } from "@/components/Drawer";
 import { Text } from "@/components/Text";
 import { useToast } from "@/components/Toast";
-import { AreaList } from "../AreaList";
 import { DecisionForm } from "../DecisionForm";
+import { Settings } from "../Settings";
 import { DecisionDetail } from "./DecisionDetail";
 import { HEADINGS } from "./decisionDrawer.copy";
 import { styles } from "./decisionDrawer.styles";
@@ -18,6 +18,9 @@ export function DecisionDrawer({
   decision,
   areas,
   areaCounts,
+  statuses,
+  statusCounts,
+  decisionCount,
   onClose,
   onEdit,
   onView,
@@ -25,7 +28,13 @@ export function DecisionDrawer({
   onDelete,
   onSave,
   onAddArea,
+  onRenameArea,
   onRemoveArea,
+  onAddStatus,
+  onEditStatus,
+  onRemoveStatus,
+  onDeleteAll,
+  onResetDemo,
   onUndo,
   history,
 }: DecisionDrawerProps) {
@@ -117,6 +126,7 @@ export function DecisionDrawer({
       {mode === "view" && decision && (
         <DecisionDetail
           decision={decision}
+          statuses={statuses}
           history={history}
           onChangeStatus={onChangeStatus}
           onDelete={onDelete}
@@ -124,8 +134,22 @@ export function DecisionDrawer({
         />
       )}
 
-      {mode === "areas" && (
-        <AreaList areas={areas} counts={areaCounts} onAdd={onAddArea} onRemove={onRemoveArea} />
+      {mode === "settings" && (
+        <Settings
+          areas={areas}
+          areaCounts={areaCounts}
+          statuses={statuses}
+          statusCounts={statusCounts}
+          decisionCount={decisionCount}
+          onAddArea={onAddArea}
+          onRenameArea={onRenameArea}
+          onRemoveArea={onRemoveArea}
+          onAddStatus={onAddStatus}
+          onEditStatus={onEditStatus}
+          onRemoveStatus={onRemoveStatus}
+          onDeleteAll={onDeleteAll}
+          onResetDemo={onResetDemo}
+        />
       )}
     </Drawer>
   );

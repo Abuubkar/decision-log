@@ -3,11 +3,8 @@ import type { ReactNode } from "react";
 import { Box } from "@/components/Box";
 import { Button } from "@/components/Button";
 import { Text } from "@/components/Text";
-import { STATUSES } from "@/domain/types";
 import { styles } from "./log.styles";
 import type { LogProps } from "./log.types";
-
-const capitalise = (word: string) => word[0]!.toUpperCase() + word.slice(1);
 
 type FilterProps = {
   label: string;
@@ -47,16 +44,16 @@ export function LogFilters({ log }: LogProps) {
         <Filter
           label="All"
           count={log.statusCounts.all}
-          chosen={log.status === "all"}
-          onClick={() => log.setStatus("all")}
+          chosen={log.status === null}
+          onClick={() => log.setStatus(null)}
         />
-        {STATUSES.map((status) => (
+        {log.statuses.map((status) => (
           <Filter
-            key={status}
-            label={capitalise(status)}
-            count={log.statusCounts[status]}
-            chosen={log.status === status}
-            onClick={() => log.setStatus(status)}
+            key={status.id}
+            label={status.label}
+            count={log.statusCounts.byStatus.get(status.id) ?? 0}
+            chosen={log.status === status.id}
+            onClick={() => log.setStatus(status.id)}
           />
         ))}
       </Group>

@@ -1,1 +1,0 @@
-export { AreaList } from "./AreaList";
