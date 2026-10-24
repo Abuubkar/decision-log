@@ -35,7 +35,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
       <Text variant="label" style={styles.groupTitle}>
         {title}
       </Text>
-      {children}
+      <Box style={styles.options}>{children}</Box>
     </Box>
   );
 }
@@ -46,7 +46,7 @@ export function LogFilters({ log }: LogProps) {
       <Group title="Status">
         <Filter
           label="All"
-          count={log.decisions.length}
+          count={log.statusCounts.all}
           chosen={log.status === "all"}
           onClick={() => log.setStatus("all")}
         />
@@ -62,7 +62,12 @@ export function LogFilters({ log }: LogProps) {
       </Group>
 
       <Group title="Area">
-        <Filter label="Every area" chosen={log.area === "all"} onClick={() => log.setArea("all")} />
+        <Filter
+          label="Every area"
+          count={log.areaCounts.get("all") ?? 0}
+          chosen={log.area === "all"}
+          onClick={() => log.setArea("all")}
+        />
         {AREAS.map((area) => (
           <Filter
             key={area}

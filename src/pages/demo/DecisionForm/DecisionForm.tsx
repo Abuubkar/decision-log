@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Box } from "@/components/Box";
 import { Button } from "@/components/Button";
@@ -5,17 +6,18 @@ import { Field } from "@/components/Field";
 import { Input } from "@/components/Input";
 import { Select } from "@/components/Select";
 import { Textarea } from "@/components/Textarea";
+import { today } from "@/domain/decisions";
 import { AREAS } from "@/domain/types";
 import { styles } from "./decisionForm.styles";
 import type { DecisionFormProps, DecisionValues } from "./decisionForm.types";
-import { LIMITS, RULES, emptyDecision, today } from "./decisionForm.validation";
+import { LIMITS, RULES, emptyDecision } from "./decisionForm.validation";
 
-export function DecisionForm({ decision, onSubmit, onCancel }: DecisionFormProps) {
+export function DecisionForm({ decision, onSubmit, onCancel, onDirtyChange }: DecisionFormProps) {
   const {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<DecisionValues>({
     defaultValues: decision
       ? {
@@ -28,6 +30,12 @@ export function DecisionForm({ decision, onSubmit, onCancel }: DecisionFormProps
         }
       : emptyDecision(),
   });
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+    // Unmounting means the form is gone, and with it anything unsaved.
+    return () => onDirtyChange?.(false);
+  }, [isDirty, onDirtyChange]);
 
   return (
     <Box as="form" onSubmit={handleSubmit(onSubmit)} style={styles.form}>

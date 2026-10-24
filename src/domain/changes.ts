@@ -1,4 +1,4 @@
-import { formatDecidedOn } from "./decisions";
+import { formatDecidedOn, today } from "./decisions";
 import type { Decision, Status } from "./types";
 
 export type ChangeKind = "created" | "edited" | "status";
@@ -48,8 +48,6 @@ export function diffFields(before: Decision, after: Decision): FieldChange[] {
     to: valueOf(field, after),
   }));
 }
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 export function created(decisionId: string, by = YOU): Change {
   return { id: crypto.randomUUID(), decisionId, kind: "created", at: today(), by };

@@ -45,12 +45,18 @@ export const styles = stylex.create({
   spacer: { flex: { default: 1, "@media (max-width: 780px)": 0 } },
   body: {
     display: "grid",
-    gridTemplateColumns: { default: "208px 1fr", "@media (max-width: 780px)": "1fr" },
+    // minmax(0, 1fr) and not 1fr: a grid column defaults to its content's
+    // minimum width, and the scrolling filter row has no minimum, so the column
+    // grew past the viewport and took the whole page sideways with it.
+    gridTemplateColumns: {
+      default: "208px minmax(0, 1fr)",
+      "@media (max-width: 780px)": "minmax(0, 1fr)",
+    },
     alignItems: "start",
   },
   sidebar: {
     alignSelf: "stretch",
-    paddingBlock: space.base,
+    paddingBlock: { default: space.base, "@media (max-width: 780px)": space.md },
     paddingInline: space.md,
     backgroundColor: colors.paperSunk,
     borderRightWidth: { default: "1px", "@media (max-width: 780px)": 0 },
@@ -61,17 +67,33 @@ export const styles = stylex.create({
     borderBottomColor: colors.rule,
   },
   group: {
-    marginBottom: space.lg,
-    display: { default: "block", "@media (max-width: 780px)": "inline-block" },
-    verticalAlign: "top",
-    marginRight: { default: 0, "@media (max-width: 780px)": space.lg },
+    marginBottom: { default: space.lg, "@media (max-width: 780px)": space.md },
   },
   groupTitle: { marginBottom: space.sm, paddingInline: space.sm },
+  /**
+   * A column of rows on a desktop, one scrolling row on a phone. Stacked, the
+   * two groups ran about six hundred pixels and pushed every decision off the
+   * screen; side by side they only got narrower. A row keeps every filter
+   * visible and costs one line each.
+   */
+  options: {
+    display: { default: "block", "@media (max-width: 780px)": "flex" },
+    // Same reason as the grid column: without it a flex item refuses to shrink
+    // below its content and the row never scrolls, it just overflows.
+    minWidth: 0,
+    gap: space.xs,
+    overflowX: { default: "visible", "@media (max-width: 780px)": "auto" },
+    // The scrollbar is the only thing that says there is more to the right, so
+    // the row keeps its padding when it overflows.
+    paddingBottom: { default: 0, "@media (max-width: 780px)": space.xs },
+    scrollbarWidth: "thin",
+  },
   filter: {
     display: "flex",
     justifyContent: "space-between",
     gap: space.md,
-    width: "100%",
+    width: { default: "100%", "@media (max-width: 780px)": "auto" },
+    flexShrink: { default: 1, "@media (max-width: 780px)": 0 },
     borderWidth: 0,
     borderRadius: radii.md,
     backgroundColor: { default: "transparent", ":hover": colors.card },
